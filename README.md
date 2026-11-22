@@ -34,7 +34,9 @@ Para verla como en el celular: herramientas de desarrollador del navegador → v
 | Publicaciones y tiendas | Se guardan en el navegador; nadie más las ve | Se guardan en Firestore; las ve todo el mundo |
 | Fotos | Comprimidas en el celular, guardadas en el navegador | Comprimidas y guardadas dentro de la publicación (máx. ~820 KB) hasta tener almacenamiento de imágenes |
 
-### Conectar Firebase (cuando se apruebe esta etapa)
+### Firebase (conectado: proyecto `feria-pekeron`)
+
+Ya está creado y configurado. Estos eran los pasos, por si hay que repetirlos en otro proyecto:
 
 1. En https://console.firebase.google.com crear un proyecto **nuevo** (ej. `feria-pekeron`). No usar `controlcompraventa`.
 2. Authentication → Método de acceso → activar **Correo electrónico/contraseña**.
@@ -80,6 +82,14 @@ de las tiendas de Gestión listadas en `TIENDAS` (hoy: `pekeron`), igual que lo 
 No escribe nada ni cambia reglas de Gestión. Guarda una copia por 10 minutos para que los visitantes de la Feria no gasten
 las lecturas gratis de Firebase de Gestión. En la Feria esas publicaciones aparecen con el sello "Tienda Pekerón" y un
 botón al catálogo para hacer el pedido. Se actualizan solas: lo que cambiás en Gestión se ve en la Feria en hasta 10 minutos.
+
+## Comprar y vender con la misma cuenta
+
+- **Mi cuenta** (`#cuenta`): Compras (Consultados, Favoritos, Vistos) y Ventas (panel, publicaciones, tienda).
+- Sin cuenta, Consultados/Favoritos/Vistos se guardan en el celular; con cuenta, Consultados y Favoritos quedan en la cuenta.
+- **¿Ya lo vendiste?**: cada toque en "Consultar por WhatsApp" crea un documento en `consultas` (sin datos del
+  comprador más que su uid si ingresó). En el panel, el vendedor ve cuántas personas consultaron desde la última vez
+  y responde Sí, lo vendí / Todavía no / Ya no lo tengo (marca vendida, solo guarda `revisado` o pausa).
 
 ## Pendiente para próximas etapas (no hecho a propósito)
 

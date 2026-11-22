@@ -9,10 +9,19 @@ let filtro = 'disponible';
 
 export async function vista(root, r, ctx) {
   const u = ctx.usuario;
-  const [mias, t] = await Promise.all([ctx.d.listar({ uid: u.uid, incluirOcultas: true }), ctx.d.tiendaDeUsuario(u.uid)]);
+  const [mias, t, rec] = await Promise.all([
+    ctx.d.listar({ uid: u.uid, incluirOcultas: true }), ctx.d.tiendaDeUsuario(u.uid),
+    ctx.d.consultasRecibidas().catch(() => ({})),
+  ]);
   const n = { disponible: 0, pausada: 0, vendida: 0 };
-  for (const p of mias) n[p.disponibilidad] = (n[p.disponibilidad] || 0) + 1;
+  for (const p of mias) {
+    n[p.disponibilidad] = (n[p.disponibilidad] || 0) + 1;
+    const c = rec[p.id];
+    p._consultas = c ? c.total : 0;
+    p._nuevas = c ? c.fechas.filter((x) => x > (p.revisado || 0)).length : 0;
+  }
   if (r.nombre === 'mis-productos') return lista(root, ctx, mias, n);
+  const preguntar = mias.filter((p) => p.disponibilidad === 'disponible' && p._nuevas > 0).sort((a, b) => b._nuevas - a._nuevas);
 
   root.innerHTML = `
   <div class="panel-cab">
@@ -26,6 +35,20 @@ export async function vista(root, r, ctx) {
     <a class="resumen-item" href="#mis-productos" data-f="pausada"><strong>${n.pausada}</strong><span>Pausadas</span></a>
     <a class="resumen-item" href="#mis-productos" data-f="vendida"><strong>${n.vendida}</strong><span>Vendidas</span></a>
   </div>
+
+  ${preguntar.length ? `<section class="vendiste" aria-label="Consultas recibidas">
+    ${preguntar.map((p) => `<div class="vendiste-item">
+      <a class="mi-foto" href="#producto-${esc(p.id)}" aria-hidden="true" tabindex="-1">${foto(p)}</a>
+      <div class="vendiste-txt">
+        <strong>${p._nuevas === 1 ? '1 persona te consultó' : `${p._nuevas} personas te consultaron`} por “${esc(p.titulo)}”</strong>
+        <span>¿Ya lo vendiste?</span>
+      </div>
+      <div class="vendiste-btns">
+        <button class="btn btn-pri btn-chico" data-resp="vendida" data-id="${esc(p.id)}">${ico('check')} Sí, lo vendí</button>
+        <button class="btn btn-sec btn-chico" data-resp="no" data-id="${esc(p.id)}">Todavía no</button>
+        <button class="btn btn-sec btn-chico" data-resp="pausada" data-id="${esc(p.id)}">Ya no lo tengo</button>
+      </div></div>`).join('')}
+  </section>` : ''}
 
   <a class="btn btn-pri ancho btn-grande" href="#publicar">${ico('mas')} Crear publicación</a>
 
@@ -42,6 +65,16 @@ export async function vista(root, r, ctx) {
 
   root.querySelectorAll('[data-f]').forEach((a) => a.addEventListener('click', () => { filtro = a.dataset.f; }));
   root.querySelector('[data-salir]').onclick = async () => { await ctx.d.auth.salir(); ctx.ir('inicio'); };
+  const msj = { vendida: '¡Bien ahí! La marcamos como vendida.', no: 'Listo, sigue publicada. Te avisamos si te vuelven a consultar.', pausada: 'La pausamos: ya no la ve nadie.' };
+  root.querySelectorAll('[data-resp]').forEach((b) => b.onclick = async () => {
+    root.querySelectorAll(`[data-id="${CSS.escape(b.dataset.id)}"]`).forEach((x) => { x.disabled = true; });
+    try {
+      if (b.dataset.resp !== 'no') await ctx.d.cambiarDisponibilidad(b.dataset.id, b.dataset.resp);
+      await ctx.d.marcarRevisado(b.dataset.id);
+      toast(msj[b.dataset.resp]);
+      vista(root, r, ctx);
+    } catch (e) { toast(e.message, 'error'); vista(root, r, ctx); }
+  });
 }
 
 function lista(root, ctx, mias, n) {
@@ -55,7 +88,8 @@ function lista(root, ctx, mias, n) {
       <a class="mi-foto" href="#producto-${esc(p.id)}" aria-label="Ver ${esc(p.titulo)}">${foto(p)}</a>
       <div class="mi-txt"><a href="#producto-${esc(p.id)}"><strong>${esc(p.titulo)}</strong></a>
         <span class="precio-chico">${fmtPrecio(p.precio)}</span>
-        <span class="txt-sec">${chipEstado(p)} · actualizada ${hace(p.actualizado)}</span></div>
+        <span class="txt-sec">${chipEstado(p)} · actualizada ${hace(p.actualizado)}</span>
+        ${p._consultas ? `<span class="txt-sec">${ico('chat')} ${p._consultas} ${p._consultas === 1 ? 'consulta' : 'consultas'} por WhatsApp</span>` : ''}</div>
       <div class="mi-acciones">
         <a class="btn btn-sec btn-chico" href="#editar-${esc(p.id)}">${ico('editar')} Editar</a>
         ${p.disponibilidad === 'disponible' ? `<button class="btn btn-sec btn-chico" data-acc="pausada" data-id="${esc(p.id)}">${ico('pausa')} Pausar</button>

@@ -17,7 +17,10 @@ const RUTAS = {
   tienda: () => import('./vistas/tienda.js'),
   ingresar: () => import('./vistas/cuenta.js'),
   registrarse: () => import('./vistas/cuenta.js'),
-  cuenta: () => import('./vistas/cuenta.js'),
+  cuenta: () => import('./vistas/mi-cuenta.js'),
+  consultados: () => import('./vistas/compras.js'),
+  favoritos: () => import('./vistas/compras.js'),
+  vistos: () => import('./vistas/compras.js'),
   panel: () => import('./vistas/panel.js'),
   'mis-productos': () => import('./vistas/panel.js'),
   publicar: () => import('./vistas/publicar.js'),
@@ -63,7 +66,7 @@ function pintarCabecera() {
         <img src="icons/icon.svg" alt="" width="30" height="30"><span>Feria <b>Pekerón</b></span></a>
       <nav class="top-links" aria-label="Secciones">
         <a href="#buscar">Buscar</a><a href="#tiendas">Tiendas</a><a href="#publicar">Vender</a>
-        <a href="${u ? '#panel' : '#ingresar'}">${u ? 'Mi cuenta' : 'Ingresar'}</a>
+        <a href="#cuenta">Mi cuenta</a>
       </nav>
       <button class="btn-ico top-instalar" data-instalar aria-label="Descargar la app">${ico('descargar')}</button>
     </div>
@@ -74,15 +77,15 @@ function pintarCabecera() {
 }
 
 function pintarTabbar(activa) {
-  const u = ctx.usuario;
   const it = [
     ['inicio', 'Inicio', 'casa'], ['buscar', 'Buscar', 'buscar'], ['publicar', 'Vender', 'mas'],
-    ['tiendas', 'Tiendas', 'tienda'], [u ? 'panel' : 'ingresar', 'Mi cuenta', 'usuario'],
+    ['tiendas', 'Tiendas', 'tienda'], ['cuenta', 'Mi cuenta', 'usuario'],
   ];
-  const grupo = { categoria: 'buscar', producto: 'buscar', tienda: 'tiendas', editar: 'panel', 'mis-productos': 'panel', 'mi-tienda': 'panel', perfil: 'panel', registrarse: 'ingresar', cuenta: 'ingresar' };
-  const a = grupo[activa] || activa;
+  const grupo = { categoria: 'buscar', producto: 'buscar', tienda: 'tiendas' };
+  const cuenta = ['panel', 'mis-productos', 'editar', 'mi-tienda', 'perfil', 'ingresar', 'registrarse', 'consultados', 'favoritos', 'vistos'];
+  const a = cuenta.includes(activa) ? 'cuenta' : grupo[activa] || activa;
   $('#tabbar').innerHTML = it.map(([h, t, i]) => {
-    const on = a === h || (h === 'ingresar' && a === 'panel') || (h === 'panel' && a === 'ingresar');
+    const on = a === h;
     return `<a href="#${h}" class="${h === 'publicar' ? 'tab-vender ' : ''}${on ? 'activa' : ''}" ${on ? 'aria-current="page"' : ''}>
       <span class="tab-ico">${ico(i)}</span><span>${t}</span></a>`;
   }).join('');

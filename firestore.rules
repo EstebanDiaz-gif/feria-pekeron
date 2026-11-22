@@ -1,19 +1,26 @@
 rules_version = '2';
-// Reglas de Firestore de Feria Pekerón.
-// Van en el proyecto de Firebase PROPIO de la Feria (nunca en el de Pekerón Gestión).
+// Reglas de Firestore de Feria Pekerón (proyecto feria-pekeron; nunca el de Pekerón Gestión).
 service cloud.firestore {
   match /databases/{database}/documents {
     function logueado() { return request.auth != null; }
     function esDueno(uid) { return logueado() && request.auth.uid == uid; }
     function texto(v, max) { return v is string && v.size() <= max; }
 
-    // Perfil de cada usuario. Lo lee cualquiera (nombre y WhatsApp se muestran en las publicaciones).
+    // Perfil público de cada usuario (nombre, tipo, WhatsApp y zona se muestran en sus publicaciones).
     match /usuarios/{uid} {
       allow read: if true;
       allow create, update: if esDueno(uid)
         && texto(request.resource.data.nombre, 60)
         && request.resource.data.tipo in ['particular', 'comercio'];
       allow delete: if false;
+
+      // Lo privado del comprador: favoritos y productos que consultó. Solo los ve y toca el dueño.
+      match /favoritos/{pid} {
+        allow read, write: if esDueno(uid);
+      }
+      match /consultados/{pid} {
+        allow read, write: if esDueno(uid);
+      }
     }
 
     // Tiendas: el id del documento es el link (slug). Un usuario solo toca la suya.
@@ -46,6 +53,22 @@ service cloud.firestore {
         && request.resource.data.precio is number && request.resource.data.precio > 0
         && request.resource.data.disponibilidad in ['disponible', 'pausada', 'vendida'];
       allow delete: if logueado() && resource.data.uid == request.auth.uid;
+    }
+
+    // Consultas: cada vez que alguien toca "Consultar por WhatsApp" queda un registro (sin datos del comprador
+    // salvo su uid si está logueado). Solo el vendedor de esa publicación las ve; sirven para el aviso
+    // "¿Ya lo vendiste?". Nadie las puede editar.
+    match /consultas/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['pub', 'vendedor', 'titulo', 'at', 'uid'])
+        && request.resource.data.pub is string
+        && exists(/databases/$(database)/documents/publicaciones/$(request.resource.data.pub))
+        && get(/databases/$(database)/documents/publicaciones/$(request.resource.data.pub)).data.uid == request.resource.data.vendedor
+        && texto(request.resource.data.titulo, 80)
+        && request.resource.data.at == request.time
+        && (!('uid' in request.resource.data) || esDueno(request.resource.data.uid));
+      allow read: if logueado() && resource.data.vendedor == request.auth.uid;
+      allow delete: if logueado() && resource.data.vendedor == request.auth.uid;
+      allow update: if false;
     }
   }
 }

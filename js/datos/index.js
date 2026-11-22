@@ -1,15 +1,22 @@
-// Elige el backend: Firebase si hay configuración en config.js; si no, modo prueba local.
+// Elige el backend: Firebase (datos reales) en los dominios publicados de la Feria; en cualquier otro lado
+// (la compu de desarrollo, una vista previa) modo prueba local, para no mezclar pruebas con datos reales.
 // Encima suma, solo lectura, las tiendas de Pekerón Gestión conectadas a la Feria (datos/gestion.js).
-import { firebase as cfg } from '../config.js';
+import { firebase as cfg, dominiosReales } from '../config.js';
 import { slug as aSlug } from '../lib/util.js';
 import * as G from './gestion.js';
+import * as L from './guardado-local.js';
 
 let api = null;
 
+function usarFirebase() {
+  try { const m = localStorage.getItem('feria.modo'); if (m === 'local') return false; if (m === 'firebase') return true; } catch { /* nada */ }
+  const h = location.hostname;
+  return dominiosReales.some((d) => h === d || h.endsWith('.' + d));
+}
+
 export async function iniciarDatos() {
   let base;
-  const hayFirebase = cfg && cfg.apiKey && cfg.projectId;
-  if (hayFirebase) {
+  if (cfg && cfg.apiKey && usarFirebase()) {
     try {
       base = await import('./firebase.js');
       await base.iniciar(cfg);
@@ -22,14 +29,18 @@ export async function iniciarDatos() {
     await base.iniciar();
   }
   G.cargar(); // empieza a traer las tiendas de Gestión en paralelo
-  api = conGestion(base);
+  api = conExtras(base);
   return api;
 }
 
-function conGestion(base) {
+function conExtras(base) {
+  const quien = () => { const u = base.auth.actual(); return u ? u.uid : 'anon'; };
+  const unir = (a, b) => { const v = new Map(); for (const x of [...a, ...b]) if (!v.has(x.id) || v.get(x.id).at < x.at) v.set(x.id, x); return [...v.values()].sort((x, y) => y.at - x.at); };
   return {
     ...base,
     get memoria() { return base.memoria; },
+
+    // ---- Publicaciones y tiendas (propias + Gestión) ----
     async listar(f = {}) {
       const propias = await base.listar(f);
       if (f.uid || f.incluirOcultas || f.soloDestacadas) return propias;
@@ -59,6 +70,28 @@ function conGestion(base) {
       }
       return base.guardarTienda(d);
     },
+
+    // ---- Comprador ----
+    // Sin cuenta: se guarda en este navegador. Con cuenta: en la cuenta (Firebase) o en el perfil de prueba (local).
+    async registrarConsulta(p) {
+      const g = String(p.id).startsWith('g-');
+      if (!g) await base.registrarConsulta(p);
+      if (g || !base.auth.actual()) L.poner('consultados.' + quien(), p);
+    },
+    async consultados() {
+      const propios = base.auth.actual() ? await base.consultados() : [];
+      return unir(propios, L.lista('consultados.' + quien()));
+    },
+    async favoritos() {
+      return base.auth.actual() ? base.favoritos() : L.lista('favoritos.anon');
+    },
+    async ponerFavorito(p, si) {
+      if (base.auth.actual()) return base.ponerFavorito(p, si);
+      if (si) L.poner('favoritos.anon', p); else L.quitar('favoritos.anon', p.id);
+    },
+    async esFavorito(id) { return (await this.favoritos()).some((x) => x.id === id); },
+    registrarVisto(p) { L.poner('vistos', p); },
+    vistos() { return L.lista('vistos'); },
   };
 }
 

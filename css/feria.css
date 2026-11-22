@@ -225,6 +225,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .form-vista > .nota, .app > .nota { margin: 10px 16px; }
 .barra-accion { position: sticky; bottom: calc(var(--tab) + var(--seg-abajo)); z-index: 10; background: var(--carta); border-top: 1px solid var(--linea); padding: 10px 16px; margin-top: 18px; }
 .btn-catalogo { margin-top: 8px; }
+.fila-ico { display: flex; gap: 8px; }
+[data-fav].on { color: #D92D20; }
+[data-fav].on .ico { fill: currentColor; }
 .chip-estado { display: inline-flex; align-items: center; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
 .chip-estado.ok { background: var(--okf); color: var(--ok); }
 .chip-estado.aviso { background: var(--avisof); color: var(--aviso); }
@@ -414,3 +417,42 @@ legend { margin-bottom: 8px; padding: 0; }
   [data-res] .grilla { padding: 0 20px; }
 }
 @media (min-width: 900px) { .zona { display: inline-flex; color: #DCE5FA; } .top-in .zona { order: 1; } }
+
+/* ---- ¿Ya lo vendiste? ---- */
+.vendiste { margin: 0 16px 14px; display: grid; gap: 10px; }
+.vendiste-item { background: var(--avisof); border: 1px solid #F1D9A8; border-radius: var(--r); padding: 12px; display: grid; grid-template-columns: 64px 1fr; gap: 10px; align-items: center; }
+.vendiste-item .mi-foto { width: 64px; height: 64px; }
+.vendiste-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.vendiste-txt strong { color: #5C3A0A; font-size: 14.5px; line-height: 1.3; }
+.vendiste-txt span { color: var(--tinta); font-weight: 800; font-size: 16px; }
+.vendiste-btns { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.vendiste-btns .btn { flex: 1 1 auto; }
+.mi-txt .txt-sec .ico { width: 15px; height: 15px; vertical-align: -3px; }
+
+/* ---- Mi cuenta ---- */
+.cuenta-cab { background: var(--azul); color: #fff; padding: 18px 16px 44px; display: flex; align-items: center; gap: 14px; }
+.cuenta-cab .avatar { width: 56px; height: 56px; font-size: 22px; background: var(--amarillo); color: var(--tinta); }
+.cuenta-cab h1 { color: #fff; font-size: 22px; }
+.cuenta-cab p { color: #DCE5FA; font-size: 14px; }
+.accesos { margin: -30px 16px 0; background: var(--carta); border: 1px solid var(--linea); border-radius: var(--r2); padding: 12px 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; box-shadow: var(--sombra); }
+.accesos a { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 2px; color: var(--texto); font-size: 13px; font-weight: 600; text-align: center; }
+.accesos a:hover { text-decoration: none; }
+.accesos .acc-ico { width: 46px; height: 46px; border-radius: 14px; background: var(--suave); color: var(--azul); display: flex; align-items: center; justify-content: center; position: relative; }
+.accesos .num-badge { position: absolute; top: -4px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--tinta); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.grupo-tit { margin: 22px 20px 8px; font-size: 15px; color: var(--sec); font-weight: 700; }
+.cuenta-vacia { margin: 16px; }
+.lista-compras { list-style: none; margin: 8px 0 0; padding: 0 16px; display: grid; gap: 8px; }
+.compra-item { background: var(--carta); border: 1px solid var(--linea); border-radius: var(--r); padding: 10px; display: flex; gap: 6px; align-items: center; }
+.compra-link { flex: 1; min-width: 0; display: grid; grid-template-columns: 64px 1fr; gap: 10px; align-items: center; color: var(--texto); font-weight: 400; }
+.compra-link:hover { text-decoration: none; }
+.compra-item:hover { box-shadow: var(--sombra); }
+.nota-lista { margin: 4px 16px 8px; }
+.compra-item .mi-foto { width: 64px; height: 64px; }
+.compra-item .mi-txt strong { font-size: 14.5px; }
+.compra-item.apagado { opacity: .65; }
+@media (min-width: 900px) {
+  .vendiste, .accesos, .lista-compras { max-width: 720px; margin-left: auto; margin-right: auto; }
+  .accesos { margin-top: -30px; }
+  .grupo-tit { max-width: 720px; margin-left: auto; margin-right: auto; }
+  .cuenta-cab { border-radius: 0 0 var(--r2) var(--r2); }
+}

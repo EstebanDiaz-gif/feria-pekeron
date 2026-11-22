@@ -2,9 +2,10 @@
 // Proyecto de Firebase PROPIO de la Feria: nunca el de Pekerón Gestión (`controlcompraventa`),
 // que ya usa colecciones como users/, stores/ y productos/.
 //
-// Estado: código escrito con la misma versión del SDK que usa Pekerón Gestión (10.12.2),
-// pero todavía no probado contra un proyecto real porque ese proyecto aún no existe.
-import { palabras, coincide, idNuevo, slug as aSlug } from '../lib/util.js';
+// Proyecto: feria-pekeron (Firestore en southamerica-east1). SDK 10.12.2, el mismo que usa Pekerón Gestión.
+// Índices compuestos creados en la consola: publicaciones (disponibilidad, [tienda|localidad|categoria|provincia], creado desc).
+import { palabras, idNuevo, slug as aSlug } from '../lib/util.js';
+import { filtrar, ordenar } from './filtro.js';
 
 const V = 'https://www.gstatic.com/firebasejs/10.12.2/';
 let A, F, auth0, db;
@@ -102,10 +103,9 @@ export const tiendaDeUsuario = seguro(async (uid) => {
   return s.empty ? null : { slug: s.docs[0].id, ...s.docs[0].data() };
 });
 export const listarTiendas = seguro(async ({ localidad } = {}) => {
-  const w = [F.orderBy('actualizado', 'desc'), F.limit(60)];
-  if (localidad) w.unshift(F.where('localidad', '==', localidad));
-  const s = await F.getDocs(F.query(F.collection(db, 'tiendas'), ...w));
-  return s.docs.map((d) => ({ slug: d.id, ...d.data() }));
+  const s = await F.getDocs(F.query(F.collection(db, 'tiendas'), F.orderBy('actualizado', 'desc'), F.limit(200)));
+  const l = s.docs.map((d) => ({ slug: d.id, ...d.data() }));
+  return localidad ? l.filter((t) => t.localidad === localidad) : l;
 });
 export const guardarTienda = seguro(async (d) => {
   if (!actual) throw new Error('Tenés que ingresar primero.');
@@ -129,24 +129,26 @@ export const publicacion = seguro(async (id) => {
   return d.exists() ? { id, ...d.data() } : null;
 });
 
-// Firestore no tiene búsqueda por texto: se filtra por la primera palabra en el servidor
-// (array-contains sobre `palabras`) y el resto en el celular. Para algo mejor, más adelante: Algolia/Typesense.
-// Cada combinación de filtros + orden necesita un índice compuesto: Firestore muestra el link para crearlo.
+// Consulta en el servidor: disponibles + UN filtro (tienda, localidad, categoría o provincia), las 300 más
+// recientes. Cada combinación tiene su índice compuesto creado en la consola (disponibilidad, campo, creado desc).
+// El resto de los filtros, la búsqueda por texto y el orden por precio se aplican en el celular.
+// Cuando haya miles de publicaciones, la búsqueda de texto pasa a un buscador dedicado (Algolia/Typesense).
 export const listar = seguro(async (f = {}) => {
-  const w = [];
-  if (!f.incluirOcultas) w.push(F.where('disponibilidad', '==', 'disponible'));
-  for (const k of ['uid', 'tienda', 'categoria', 'estado', 'provincia', 'localidad']) if (f[k]) w.push(F.where(k, '==', f[k]));
-  if (f.sub) w.push(F.where('subcategoria', '==', f.sub));
-  if (f.soloDestacadas) w.push(F.where('destacada', '==', true));
-  const q1 = palabras(f.q)[0];
-  if (q1) w.push(F.where('palabras', 'array-contains', q1));
-  const o = f.orden || 'recientes';
-  w.push(o === 'precio-asc' ? F.orderBy('precio', 'asc') : o === 'precio-desc' ? F.orderBy('precio', 'desc') : F.orderBy('creado', 'desc'));
-  w.push(F.limit(f.limite || 60));
+  if (f.uid) {
+    // Mis publicaciones: todas (incluye pausadas y vendidas). Solo filtra por dueño: no necesita índice.
+    const s = await F.getDocs(F.query(F.collection(db, 'publicaciones'), F.where('uid', '==', f.uid)));
+    let l = s.docs.map((d) => ({ id: d.id, ...d.data() }));
+    if (!f.incluirOcultas) l = l.filter((p) => p.disponibilidad === 'disponible');
+    l = ordenar(filtrar(l, { ...f, uid: undefined }), f.orden);
+    return f.limite ? l.slice(0, f.limite) : l;
+  }
+  const w = [F.where('disponibilidad', '==', 'disponible')];
+  const campo = ['tienda', 'localidad', 'categoria', 'provincia'].find((k) => f[k]);
+  if (campo) w.push(F.where(campo, '==', f[campo]));
+  w.push(F.orderBy('creado', 'desc'), F.limit(300));
   const s = await F.getDocs(F.query(F.collection(db, 'publicaciones'), ...w));
-  let l = s.docs.map((d) => ({ id: d.id, ...d.data() }));
-  if (f.q) l = l.filter((p) => coincide(p, f.q));
-  return l;
+  const l = ordenar(filtrar(s.docs.map((d) => ({ id: d.id, ...d.data() })), f), f.orden);
+  return f.limite ? l.slice(0, f.limite) : l;
 });
 
 export const guardarPublicacion = seguro(async (d) => {
@@ -171,3 +173,54 @@ export const cambiarDisponibilidad = seguro(async (id, disponibilidad) => {
   await F.updateDoc(F.doc(db, 'publicaciones', id), { disponibilidad, actualizado: Date.now() });
 });
 export const borrarPublicacion = seguro(async (id) => { await F.deleteDoc(F.doc(db, 'publicaciones', id)); });
+
+// ---------- Consultas (toques en "Consultar por WhatsApp") ----------
+// Se guarda que alguien consultó (y su uid si está logueado), nunca su número ni el mensaje.
+export async function registrarConsulta(p) {
+  if (!p || !p.id || String(p.id).startsWith('g-') || !p.uid) return;
+  const d = { pub: p.id, vendedor: p.uid, titulo: String(p.titulo || '').slice(0, 80), at: F.serverTimestamp() };
+  if (actual) d.uid = actual.uid;
+  try { await F.addDoc(F.collection(db, 'consultas'), d); } catch (e) { console.warn('consulta', e); }
+  if (actual) {
+    try {
+      await F.setDoc(F.doc(db, 'usuarios', actual.uid, 'consultados', p.id),
+        { titulo: p.titulo || '', precio: p.precio || 0, at: Date.now() });
+    } catch (e) { console.warn('consultado', e); }
+  }
+}
+
+// Para el vendedor: { [idPublicacion]: { total, nuevas, ultima } }. "Nuevas" = después de la última vez
+// que respondió "¿Ya lo vendiste?" (campo `revisado` de la publicación).
+export const consultasRecibidas = seguro(async () => {
+  if (!actual) return {};
+  const s = await F.getDocs(F.query(F.collection(db, 'consultas'), F.where('vendedor', '==', actual.uid)));
+  const r = {};
+  for (const d of s.docs) {
+    const x = d.data(); const t = x.at && x.at.toMillis ? x.at.toMillis() : 0;
+    const a = r[x.pub] || (r[x.pub] = { total: 0, fechas: [] });
+    a.total++; a.fechas.push(t);
+  }
+  return r;
+});
+
+export const marcarRevisado = seguro(async (id) => {
+  await F.updateDoc(F.doc(db, 'publicaciones', id), { revisado: Date.now() });
+});
+
+// ---------- Comprador: favoritos y consultados (en la cuenta, sincronizados entre dispositivos) ----------
+export const favoritos = seguro(async () => {
+  if (!actual) return [];
+  const s = await F.getDocs(F.collection(db, 'usuarios', actual.uid, 'favoritos'));
+  return s.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => b.at - a.at);
+});
+export const ponerFavorito = seguro(async (p, si) => {
+  if (!actual) throw new Error('Ingresá para guardar favoritos en tu cuenta.');
+  const ref = F.doc(db, 'usuarios', actual.uid, 'favoritos', p.id);
+  if (si) await F.setDoc(ref, { titulo: p.titulo || '', precio: p.precio || 0, at: Date.now() });
+  else await F.deleteDoc(ref);
+});
+export const consultados = seguro(async () => {
+  if (!actual) return [];
+  const s = await F.getDocs(F.collection(db, 'usuarios', actual.uid, 'consultados'));
+  return s.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => b.at - a.at);
+});

@@ -10,7 +10,7 @@ const avisoLocal = `<div class="nota nota-aviso">${ico('info')}<span><b>Modo pru
 
 export async function vista(root, r, ctx) {
   if (ctx.usuario) { ctx.ir('panel'); return; }
-  if (r.nombre === 'registrarse' || r.nombre === 'cuenta') return registro(root, ctx);
+  if (r.nombre === 'registrarse') return registro(root, ctx);
   return ingreso(root, ctx);
 }
 

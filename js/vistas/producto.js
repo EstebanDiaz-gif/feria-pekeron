@@ -26,7 +26,10 @@ export async function vista(root, r, ctx) {
   root.innerHTML = `
   <div class="barra-vista barra-flotante">
     <button class="btn-ico" data-atras aria-label="Volver">${ico('atras')}</button>
-    <button class="btn-ico" data-compartir aria-label="Copiar link de la publicación">${ico('compartir')}</button>
+    <span class="fila-ico">
+      <button class="btn-ico" data-fav aria-pressed="false" aria-label="Guardar en favoritos">${ico('corazon')}</button>
+      <button class="btn-ico" data-compartir aria-label="Copiar link de la publicación">${ico('compartir')}</button>
+    </span>
   </div>
   <div class="detalle">
     <div class="galeria">
@@ -77,6 +80,22 @@ export async function vista(root, r, ctx) {
   </div>`;
 
   root.querySelector('[data-atras]').onclick = () => { if (history.length > 1) history.back(); else ctx.ir('inicio'); };
+  if (!mia) ctx.d.registrarVisto(p);
+
+  // Favorito
+  const fav = root.querySelector('[data-fav]');
+  const pintarFav = (si) => { fav.setAttribute('aria-pressed', si); fav.classList.toggle('on', si); fav.setAttribute('aria-label', si ? 'Quitar de favoritos' : 'Guardar en favoritos'); };
+  ctx.d.esFavorito(p.id).then(pintarFav).catch(() => {});
+  fav.onclick = async () => {
+    const si = fav.getAttribute('aria-pressed') !== 'true';
+    pintarFav(si);
+    try { await ctx.d.ponerFavorito(p, si); toast(si ? 'Guardado en favoritos.' : 'Quitado de favoritos.'); }
+    catch (e) { pintarFav(!si); toast(e.message, 'error'); }
+  };
+
+  // Consulta: queda registrada para el aviso "¿Ya lo vendiste?" del vendedor y en "Consultados" del comprador.
+  const btnWa = root.querySelector('.btn-wa');
+  if (btnWa && !mia) btnWa.addEventListener('click', () => { ctx.d.registrarConsulta(p).catch(() => {}); });
   root.querySelector('[data-compartir]').onclick = async () => {
     try { await navigator.clipboard.writeText(url); toast('Link copiado. Pegalo donde quieras compartirlo.'); }
     catch { toast('No se pudo copiar el link en este navegador.', 'error'); }

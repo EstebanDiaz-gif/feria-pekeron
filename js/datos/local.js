@@ -3,6 +3,7 @@
 // existe solo en este dispositivo y nadie más ve lo que se publica. Sirve para recorrer y probar la app
 // hasta que se conecte Firebase (ver datos/firebase.js y README.md).
 import { palabras, coincide, idNuevo, slug as aSlug } from '../lib/util.js';
+import * as L from './guardado-local.js';
 
 const DB = 'feria-pekeron-local';
 const SESION = 'feria.sesion';
@@ -12,12 +13,12 @@ function abrir() {
   if (dbp) return dbp;
   dbp = new Promise((ok, mal) => {
     let r;
-    try { r = indexedDB.open(DB, 1); } catch (e) { mal(e); return; }
+    try { r = indexedDB.open(DB, 2); } catch (e) { mal(e); return; }
     r.onupgradeneeded = () => {
       const d = r.result;
-      d.createObjectStore('perfiles', { keyPath: 'uid' });
-      d.createObjectStore('tiendas', { keyPath: 'slug' });
-      d.createObjectStore('publicaciones', { keyPath: 'id' });
+      for (const [n, k] of [['perfiles', 'uid'], ['tiendas', 'slug'], ['publicaciones', 'id'], ['consultas', 'id']]) {
+        if (!d.objectStoreNames.contains(n)) d.createObjectStore(n, { keyPath: k });
+      }
     };
     r.onsuccess = () => ok(r.result);
     r.onerror = () => mal(r.error);
@@ -28,8 +29,8 @@ function abrir() {
 // Si el navegador no deja usar IndexedDB (algunas vistas previas o modo incógnito), se guarda en memoria
 // hasta recargar la página. `memoria` avisa a la interfaz para mostrarlo.
 export let memoria = false;
-const MEM = { perfiles: new Map(), tiendas: new Map(), publicaciones: new Map() };
-const CLAVE = { perfiles: 'uid', tiendas: 'slug', publicaciones: 'id' };
+const MEM = { perfiles: new Map(), tiendas: new Map(), publicaciones: new Map(), consultas: new Map() };
+const CLAVE = { perfiles: 'uid', tiendas: 'slug', publicaciones: 'id', consultas: 'id' };
 function opMem(store, fn) {
   const m = MEM[store];
   const o = {
@@ -190,3 +191,30 @@ export async function borrarPublicacion(id) {
   if (!p || !actual || p.uid !== actual.uid) throw new Error('Esta publicación no es tuya.');
   await del('publicaciones', id);
 }
+
+// ---------- Consultas y comprador (modo prueba: todo en este navegador) ----------
+export async function registrarConsulta(p) {
+  if (!p || !p.id || String(p.id).startsWith('g-') || !p.uid) return;
+  await put('consultas', { id: idNuevo(), pub: p.id, vendedor: p.uid, titulo: p.titulo || '', at: Date.now(), uid: actual ? actual.uid : '' });
+  if (actual) L.poner('consultados.' + actual.uid, p);
+}
+export async function consultasRecibidas() {
+  if (!actual) return {};
+  const r = {};
+  for (const x of (await todos('consultas')).filter((c) => c.vendedor === actual.uid)) {
+    const a = r[x.pub] || (r[x.pub] = { total: 0, fechas: [] });
+    a.total++; a.fechas.push(x.at);
+  }
+  return r;
+}
+export async function marcarRevisado(id) {
+  const p = await get('publicaciones', id);
+  if (!p || !actual || p.uid !== actual.uid) throw new Error('Esta publicación no es tuya.');
+  await put('publicaciones', { ...p, revisado: Date.now() });
+}
+export async function favoritos() { return actual ? L.lista('favoritos.' + actual.uid) : []; }
+export async function ponerFavorito(p, si) {
+  if (!actual) throw new Error('Ingresá para guardar favoritos.');
+  if (si) L.poner('favoritos.' + actual.uid, p); else L.quitar('favoritos.' + actual.uid, p.id);
+}
+export async function consultados() { return actual ? L.lista('consultados.' + actual.uid) : []; }
