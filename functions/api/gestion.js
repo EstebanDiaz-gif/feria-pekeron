@@ -19,6 +19,8 @@ const TIENDAS = {
   pekeron: { provincia: 'Tucumán', localidad: 'San Miguel de Tucumán', categoria: 'ropa' },
 };
 
+const MARCAS = ['adidas', 'nike', 'puma', 'vans', 'converse', 'reebok', 'new balance', 'fila', 'topper', 'asics', 'jordan', 'skechers', 'diadora', 'mizuno', 'under armour', 'olympikus', 'kappa', 'umbro'];
+
 const SUBS = {
   ropa: [['zapatill', 'Zapatillas'], ['calzad', 'Calzado'], ['ojota', 'Calzado'], ['bota', 'Calzado'], ['sandalia', 'Calzado'],
     ['mochila', 'Bolsos y mochilas'], ['bolso', 'Bolsos y mochilas'], ['cartera', 'Bolsos y mochilas'], ['riñonera', 'Bolsos y mochilas'],
@@ -63,10 +65,13 @@ async function coleccion(ruta) {
 
 const img = (s) => (typeof s === 'string' && /^data:image\/(jpeg|png|webp);base64,/.test(s) ? s : '');
 const clave = (s) => String(s || '').trim().toLowerCase();
-function subDe(cat, texto) {
+function subDe(cat, texto, talles = []) {
   const t = String(texto || '').toLowerCase();
   for (const [p, s] of SUBS[cat] || []) if (t.includes(p)) return s;
-  return '';
+  if (cat !== 'ropa') return '';
+  const numericos = talles.length && talles.every((z) => /^\d{2}([.,]5)?$/.test(String(z).trim()) && +String(z).replace(',', '.') >= 33);
+  if (MARCAS.some((m) => t.includes(m))) return numericos || !talles.length ? 'Zapatillas' : '';
+  return numericos ? 'Calzado' : '';
 }
 function talleOrden(a, b) { const x = parseFloat(a), y = parseFloat(b); return (isNaN(x) || isNaN(y)) ? String(a).localeCompare(String(b)) : x - y; }
 
@@ -116,7 +121,7 @@ async function tiendaGestion(slug, cfg) {
     }
     pubs = Object.values(g).filter((a) => !a.oh && a.q > 0 && (a.pn || a.pm)).map((a) => ({
       ...comun, id: `g-${slug}-${encodeURIComponent(a.k).slice(0, 120)}`, titulo: a.n, descripcion: a.d,
-      precio: a.pn || a.pm, subcategoria: subDe(cfg.categoria, a.cat + ' ' + a.n) || '',
+      precio: a.pn || a.pm, subcategoria: subDe(cfg.categoria, a.cat + ' ' + a.n, a.sz) || '',
       fotos: img(a.img) ? [img(a.img)] : [], variantes: { talles: [...new Set(a.sz)].sort(talleOrden), colores: [] }, stock: a.q,
     }));
   }
@@ -137,7 +142,7 @@ async function armar() {
 export async function onRequestGet({ request, waitUntil }) {
   const ahora = Date.now();
   const cache = typeof caches !== 'undefined' ? caches.default : null;
-  const claveCache = new Request(new URL('/__cache/gestion-v1', request.url).toString());
+  const claveCache = new Request(new URL('/__cache/gestion-v2', request.url).toString());
   if (memoria.datos && ahora - memoria.t < MINUTOS * 60000) return responder(memoria.datos);
   if (cache) { const r = await cache.match(claveCache); if (r) return r; }
   const datos = await armar();
