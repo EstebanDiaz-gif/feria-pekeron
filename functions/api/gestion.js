@@ -5,8 +5,8 @@
 // - Guarda una copia por 10 minutos, así los visitantes de la Feria no gastan las lecturas gratis de Firebase
 //   que usan los clientes de Gestión (todos los visitantes comparten la misma copia).
 //
-// Para sumar una tienda: agregarla a TIENDAS (con su permiso). Más adelante esto lo reemplaza un interruptor
-// "Mostrar mis productos en la Feria" dentro de Gestión.
+// Cada tienda se suma sola desde Gestión (Equipo → "Feria Pekerón" → "Mostrar mis productos en la Feria"),
+// que guarda feria/{sid} = { prov, loc, cat }. TIENDAS queda como respaldo para la tienda Pekerón.
 
 const PROYECTO = 'controlcompraventa';
 // Clave web pública de Firebase (la misma que ya está en firebase-config.js de Gestión; no es secreta).
@@ -75,12 +75,16 @@ function subDe(cat, texto, talles = []) {
 }
 function talleOrden(a, b) { const x = parseFloat(a), y = parseFloat(b); return (isNaN(x) || isNaN(y)) ? String(a).localeCompare(String(b)) : x - y; }
 
-async function tiendaGestion(slug, cfg) {
-  const s = await doc('slugs/' + encodeURIComponent(slug));
-  if (!s || !s.sid) return null;
-  const sid = s.sid;
+async function tiendaGestion(slug, cfg, sidDado) {
+  let sid = sidDado;
+  if (!sid) {
+    const s = await doc('slugs/' + encodeURIComponent(slug));
+    if (!s || !s.sid) return null;
+    sid = s.sid;
+  }
   const info = await doc(`stores/${sid}/public/info`);
   if (!info || !info.enabled || info.susp) return null;
+  if (sidDado) { if (!info.slug) return null; slug = info.slug; }
   const wa = ((info.was || []).find((x) => x && x.w) || {}).w || info.wa || '';
   const tienda = {
     slug, origen: 'gestion', nombre: info.name || slug, descripcion: info.tag || '',
@@ -128,11 +132,28 @@ async function tiendaGestion(slug, cfg) {
   return { tienda, publicaciones: pubs };
 }
 
+const CATS = ['ropa', 'tecnologia', 'hogar', 'herramientas', 'vehiculos', 'belleza', 'bebes', 'deportes', 'almacen', 'mascotas', 'servicios', 'otros'];
+const texto = (s, n) => String(s || '').trim().slice(0, n);
+
+// Tiendas que se sumaron desde Gestión (feria/{sid}). Si las reglas todavía no están publicadas, no hay ninguna.
+export async function inscriptas() {
+  let lista = [];
+  try { lista = await coleccion('feria'); } catch { return []; }
+  return lista.map((d) => ({ sid: d.id, slug: texto(d.slug, 40), cfg: {
+    provincia: texto(d.prov, 40) || 'Tucumán', localidad: texto(d.loc, 60), categoria: CATS.includes(d.cat) ? d.cat : 'otros' } }));
+}
+
 async function armar() {
   const res = { tiendas: [], publicaciones: [], actualizado: Date.now(), errores: [] };
-  await Promise.all(Object.entries(TIENDAS).map(async ([slug, cfg]) => {
+  const desdeGestion = await inscriptas();
+  const ya = new Set(desdeGestion.map((x) => x.slug));
+  const todas = [...desdeGestion, ...Object.entries(TIENDAS).filter(([slug]) => !ya.has(slug)).map(([slug, cfg]) => ({ slug, cfg, sid: null }))];
+  const vistas = new Set();
+  await Promise.all(todas.map(async ({ slug, cfg, sid }) => {
     try {
-      const t = await tiendaGestion(slug, cfg);
+      const t = await tiendaGestion(slug, cfg, sid);
+      if (t && vistas.has(t.tienda.slug)) return;
+      if (t) vistas.add(t.tienda.slug);
       if (t) { res.tiendas.push(t.tienda); res.publicaciones.push(...t.publicaciones); }
     } catch (e) { res.errores.push(`${slug}: ${e.message}`); }
   }));
@@ -142,7 +163,7 @@ async function armar() {
 export async function onRequestGet({ request, waitUntil }) {
   const ahora = Date.now();
   const cache = typeof caches !== 'undefined' ? caches.default : null;
-  const claveCache = new Request(new URL('/__cache/gestion-v2', request.url).toString());
+  const claveCache = new Request(new URL('/__cache/gestion-v3', request.url).toString());
   if (memoria.datos && ahora - memoria.t < MINUTOS * 60000) return responder(memoria.datos);
   if (cache) { const r = await cache.match(claveCache); if (r) return r; }
   const datos = await armar();
