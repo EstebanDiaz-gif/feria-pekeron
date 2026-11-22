@@ -73,9 +73,18 @@ test/                   pruebas con node --test
   disponibilidad (`disponible`|`pausada`|`vendida`), stock, variantes {talles, colores}, fotos, provincia, localidad,
   barrio, tienda, palabras (para buscar), destacada (solo la cambia la plataforma), creado, actualizado.
 
+## Tiendas de Pekerón Gestión en la Feria
+
+`functions/api/gestion.js` es una función de Cloudflare Pages (`/api/gestion`) que lee **solo lo público** del catálogo
+de las tiendas de Gestión listadas en `TIENDAS` (hoy: `pekeron`), igual que lo ve cualquiera en pekeronapp.com/<tienda>.
+No escribe nada ni cambia reglas de Gestión. Guarda una copia por 10 minutos para que los visitantes de la Feria no gasten
+las lecturas gratis de Firebase de Gestión. En la Feria esas publicaciones aparecen con el sello "Tienda Pekerón" y un
+botón al catálogo para hacer el pedido. Se actualizan solas: lo que cambiás en Gestión se ve en la Feria en hasta 10 minutos.
+
 ## Pendiente para próximas etapas (no hecho a propósito)
 
 - Conectar Firebase y probar con usuarios reales.
+- Interruptor "Mostrar mis productos en la Feria" dentro de Gestión, para que cada negocio elija (hoy la lista está en la función).
 - Almacenamiento de imágenes (Cloudflare R2) para no guardar fotos dentro de la publicación.
 - Panel de la plataforma: destacar publicaciones, moderar y bajar contenido prohibido, reportes.
 - Búsqueda de texto más potente (Algolia/Typesense) cuando haya volumen.

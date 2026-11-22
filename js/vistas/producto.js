@@ -59,7 +59,7 @@ export async function vista(root, r, ctx) {
       <div class="vendedor">
         ${avatar(t || { nombre: p.vendedorNombre })}
         <div class="vendedor-txt"><strong>${esc(t ? t.nombre : p.vendedorNombre)}</strong>
-          <span class="txt-sec">${t ? 'Tienda en la Feria' : 'Vendedor particular'}${t && t.localidad ? ' · ' + esc(t.localidad) : ''}</span></div>
+          <span class="txt-sec">${t ? (t.origen === 'gestion' ? 'Tienda Pekerón' : 'Tienda en la Feria') : 'Vendedor particular'}${t && t.localidad ? ' · ' + esc(t.localidad) : ''}</span></div>
         ${t ? `<a class="btn btn-sec btn-chico" href="#tienda-${esc(t.slug)}">Ver tienda</a>` : ''}
       </div>
 
@@ -73,6 +73,7 @@ export async function vista(root, r, ctx) {
     ${vendida ? '<span class="btn btn-sec ancho" aria-disabled="true">Este producto ya se vendió</span>'
       : wa ? `<a class="btn btn-wa ancho" href="${esc(wa)}" target="_blank" rel="noopener">${ico('whatsapp')} Consultar por WhatsApp</a>`
       : '<span class="btn btn-sec ancho" aria-disabled="true">El vendedor no cargó su WhatsApp</span>'}
+    ${p.origen === 'gestion' && /^https:\/\/pekeronapp\.com\//.test(p.linkCatalogo || '') ? `<a class="btn btn-sec ancho btn-catalogo" href="${esc(p.linkCatalogo)}" target="_blank" rel="noopener">${ico('tienda')} Ver todo el catálogo y hacer el pedido</a>` : ''}
   </div>`;
 
   root.querySelector('[data-atras]').onclick = () => { if (history.length > 1) history.back(); else ctx.ir('inicio'); };

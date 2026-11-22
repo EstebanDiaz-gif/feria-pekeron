@@ -23,7 +23,9 @@ export async function vista(root, r, ctx) {
       <h1>${esc(t.nombre)}</h1>
       ${lugar ? `<p class="txt-sec">${ico('ubicacion')} ${esc(lugar)}</p>` : ''}
       ${t.descripcion ? `<p class="tienda-desc">${esc(t.descripcion)}</p>` : ''}
+      ${t.origen === 'gestion' ? `<span class="chip-tipo">${ico('check')} Tienda Pekerón</span>` : ''}
       <div class="fila-btns">
+        ${t.origen === 'gestion' && /^https:\/\/pekeronapp\.com\//.test(t.linkCatalogo || '') ? `<a class="btn btn-pri" href="${esc(t.linkCatalogo)}" target="_blank" rel="noopener">${ico('tienda')} Catálogo y pedidos</a>` : ''}
         ${wa ? `<a class="btn btn-wa" href="${esc(wa)}" target="_blank" rel="noopener">${ico('whatsapp')} WhatsApp</a>` : ''}
         ${ig ? `<a class="btn btn-sec" href="https://instagram.com/${esc(ig)}" target="_blank" rel="noopener">${ico('instagram')} Instagram</a>` : ''}
         <button class="btn btn-sec" data-link>${ico('compartir')} Copiar link</button>

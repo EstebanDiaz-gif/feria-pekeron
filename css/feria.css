@@ -224,6 +224,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .nota.ok { background: var(--okf); color: var(--ok); }
 .form-vista > .nota, .app > .nota { margin: 10px 16px; }
 .barra-accion { position: sticky; bottom: calc(var(--tab) + var(--seg-abajo)); z-index: 10; background: var(--carta); border-top: 1px solid var(--linea); padding: 10px 16px; margin-top: 18px; }
+.btn-catalogo { margin-top: 8px; }
 .chip-estado { display: inline-flex; align-items: center; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
 .chip-estado.ok { background: var(--okf); color: var(--ok); }
 .chip-estado.aviso { background: var(--avisof); color: var(--aviso); }
