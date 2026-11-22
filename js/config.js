@@ -36,8 +36,9 @@ export const banners = [
 ];
 
 // Anuncio que aparece al abrir la Feria: como mucho UNA vez por día, rotando entre estos.
+// También aparecen en la campanita (pestaña Destacadas) con su `fecha`.
 // Para apagarlo, dejar la lista vacía: anuncios = [].
 export const anuncios = [
-  { id: 'lanzamiento-2026', etiqueta: 'Lanzamiento', titulo: '¡Llegó Feria Pekerón!', texto: 'El marketplace de Tucumán: publicá gratis, sin comisiones, y hablá directo con quien compra por WhatsApp.', boton: 'Publicar gratis', link: '#publicar', secundario: 'Explorar la Feria', tema: 'azul', icono: 'bolsa' },
-  { id: 'gestion-2026', etiqueta: 'Pekerón Gestión', titulo: 'Tu negocio, ordenado desde el celular', texto: 'Stock, ventas, fiado y caja en una sola app. Y tus productos aparecen solos en la Feria.', boton: 'Conocer Pekerón Gestión', link: 'https://pekeronapp.com', secundario: 'Ahora no', tema: 'tinta', icono: 'panel' },
+  { id: 'lanzamiento-2026', fecha: '2026-11-22', etiqueta: 'Lanzamiento', titulo: '¡Llegó Feria Pekerón!', texto: 'El marketplace de Tucumán: publicá gratis, sin comisiones, y hablá directo con quien compra por WhatsApp.', boton: 'Publicar gratis', link: '#publicar', secundario: 'Explorar la Feria', tema: 'azul', icono: 'bolsa' },
+  { id: 'gestion-2026', fecha: '2026-11-22', etiqueta: 'Pekerón Gestión', titulo: 'Tu negocio, ordenado desde el celular', texto: 'Stock, ventas, fiado y caja en una sola app. Y tus productos aparecen solos en la Feria.', boton: 'Conocer Pekerón Gestión', link: 'https://pekeronapp.com', secundario: 'Ahora no', tema: 'tinta', icono: 'panel' },
 ];

@@ -12,6 +12,7 @@ import { mostrarAnuncio } from './lib/anuncio.js';
 
 const RUTAS = {
   inicio: () => import('./vistas/inicio.js'),
+  notificaciones: () => import('./vistas/notificaciones.js'),
   categorias: () => import('./vistas/categorias.js'),
   buscar: () => import('./vistas/buscar.js'),
   categoria: () => import('./vistas/buscar.js'),
@@ -56,9 +57,23 @@ const ctx = {
   refrescar() { mostrar(); },
   async cambiarZona() {
     const z = await elegirZona(ctx.zona);
-    if (z) { ctx.zona = z; guardarZona(z); pintarCabecera(); mostrar(); }
+    if (z) { ctx.zona = z; guardarZona(z); pintarCabecera(); ctx.actualizarCampana(ctx.campana); mostrar(); }
   },
   volverA: '',
+  campana: 0,
+  actualizarCampana(n) {
+    ctx.campana = n;
+    const b = document.querySelector('[data-campana]');
+    if (!b) return;
+    b.hidden = !n; b.textContent = n > 9 ? '9+' : String(n);
+    b.parentElement.setAttribute('aria-label', n ? `Notificaciones, ${n} nuevas` : 'Notificaciones');
+  },
+  async contarNotificaciones() {
+    try {
+      const N = await import('./datos/notificaciones.js');
+      ctx.actualizarCampana(N.contarNuevas(await N.armar(ctx)));
+    } catch (e) { console.warn('campana', e); }
+  },
 };
 
 function pintarCabecera() {
@@ -72,12 +87,11 @@ function pintarCabecera() {
       <nav class="top-links" aria-label="Secciones">
         <a href="#categorias">Categorías</a><a href="#tiendas">Tiendas</a><a href="#publicar">Vender</a><a href="#cuenta">Mi cuenta</a>
       </nav>
-      <button class="btn-ico top-instalar" data-instalar aria-label="Descargar la app">${ico('descargar')}</button>
+      <a class="btn-ico campana" href="#notificaciones" aria-label="Notificaciones">${ico('campana')}<span class="campana-num" data-campana hidden></span></a>
     </div>
     <button class="zona" data-zona>${ico('ubicacion')}<span>${esc(ctx.zona.localidad || ctx.zona.provincia || 'Todo el país')}</span>${ico('abajo', 'zona-flecha')}</button>
   </div>`;
   $('#top [data-zona]').onclick = () => ctx.cambiarZona();
-  $('#top [data-instalar]').onclick = () => abrirInstalar();
   $('#top [data-top-buscar]').onsubmit = (e) => {
     e.preventDefault();
     const q = String(new FormData(e.target).get('q') || '').trim();
@@ -146,11 +160,13 @@ async function arrancar() {
   avisoModo();
   pintarCabecera();
   revisarInstalacion();
-  ctx.d.auth.alCambiar(() => { pintarCabecera(); });
+  ctx.d.auth.alCambiar(() => { pintarCabecera(); ctx.actualizarCampana(ctx.campana); ctx.contarNotificaciones(); });
   window.addEventListener('hashchange', mostrar);
   document.addEventListener('click', (e) => { if (e.target.closest('[data-instalar]') && !e.target.closest('#top')) abrirInstalar(); });
   mostrar();
   setTimeout(() => mostrarAnuncio(ctx), 900);
+  setTimeout(() => ctx.contarNotificaciones(), 2500);
+  setInterval(() => { if (!document.hidden) ctx.contarNotificaciones(); }, 5 * 60000);
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
     navigator.serviceWorker.register('sw.js').catch(() => { /* vista previa o navegador sin soporte */ });
   }

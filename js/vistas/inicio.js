@@ -1,6 +1,7 @@
 // Inicio: carrusel de banners, accesos rápidos, cerca tuyo, tiendas, categorías y lo más nuevo.
 import { esc } from '../lib/util.js';
 import { ico } from '../lib/iconos.js';
+import { ilus } from '../lib/ilustraciones.js';
 import { CATEGORIAS } from '../datos/catalogo.js';
 import { linkGestion, banners } from '../config.js';
 import { grilla, seccion, vacio, avatar } from './componentes.js';
@@ -10,8 +11,8 @@ const ACCESOS = [
   { t: 'Categorías', i: 'grilla', bg: '#E6F0FF', fg: '#1D4ED8', h: '#categorias' },
   { t: 'Cerca tuyo', i: 'ubicacion', bg: '#E5F6F4', fg: '#0F766E', accion: 'cerca' },
   { t: 'Tiendas', i: 'tienda', bg: '#FFF1DB', fg: '#B45309', h: '#tiendas' },
-  { t: 'Vender', i: 'mas', bg: '#FFE9A8', fg: '#7A4E00', h: '#publicar' },
-  { t: 'Usados', i: 'regalo', bg: '#E7F7E9', fg: '#15803D', accion: 'usados' },
+  { t: 'Vender', i: 'vender', bg: '#FFE9A8', fg: '#7A4E00', h: '#publicar' },
+  { t: 'Usados', i: 'usados', bg: '#E7F7E9', fg: '#15803D', accion: 'usados' },
   { t: 'Favoritos', i: 'corazon', bg: '#FDE8EF', fg: '#C2255C', h: '#favoritos' },
   { t: 'Gestión', i: 'panel', bg: '#E8ECF8', fg: '#102468', h: linkGestion, ext: true },
 ];
@@ -45,7 +46,7 @@ export async function vista(root, _r, ctx) {
 
   <nav class="accesos-fila" aria-label="Accesos rápidos">
     ${ACCESOS.map((a) => {
-      const inner = `<span class="ac-ico" style="background:${a.bg};color:${a.fg}">${ico(a.i)}</span><span>${esc(a.t)}</span>`;
+      const inner = `<span class="ac-ico" style="background:${a.bg}">${ilus(a.i)}</span><span>${esc(a.t)}</span>`;
       return a.accion ? `<button class="ac" data-accion="${a.accion}">${inner}</button>`
         : `<a class="ac" href="${esc(a.h)}" ${a.ext ? 'target="_blank" rel="noopener"' : ''}>${inner}</a>`;
     }).join('')}
@@ -66,7 +67,7 @@ export async function vista(root, _r, ctx) {
       ${t.origen === 'gestion' ? `<small>${ico('check')} Pekerón</small>` : ''}</a>`).join('')}</div>`, '<a href="#tiendas">Ver todas</a>') : ''}
 
   ${seccion('Explorá por categoría', `<div class="cats-fila">${CATEGORIAS.map((c) => `
-      <a class="cat-chip" href="#categoria-${c.id}" style="background:${c.bg};color:${c.fg}">${ico(c.icono)}<span>${esc(c.nombre)}</span></a>`).join('')}</div>`, '<a href="#categorias">Ver todas</a>')}
+      <a class="cat-chip" href="#categoria-${c.id}" style="background:${c.bg};color:${c.fg}"><span class="cat-chip-ilus">${ilus(c.icono)}</span><span>${esc(c.nombre)}</span></a>`).join('')}</div>`, '<a href="#categorias">Ver todas</a>')}
 
   ${recientes.length ? seccion('Lo más nuevo', grilla(recientes), '<a href="#buscar">Ver todo</a>') : seccion('Lo más nuevo',
     vacio('Todavía no hay publicaciones', 'La Feria recién arranca. Podés ser de los primeros en publicar.', '<a class="btn btn-pri" href="#publicar">Publicar gratis</a>'))}

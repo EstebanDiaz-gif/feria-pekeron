@@ -3,6 +3,7 @@
 import { anuncios } from '../config.js';
 import { esc } from './util.js';
 import { ico } from './iconos.js';
+import { ilus } from './ilustraciones.js';
 
 const CLAVE = 'feria.anuncio';
 
@@ -24,16 +25,21 @@ export function mostrarAnuncio(ctx, { forzar = false } = {}) {
   const capa = document.querySelector('#capa');
   const externo = /^https:\/\//.test(a.link);
   capa.innerHTML = `<div class="anuncio tema-${esc(a.tema || 'azul')}" role="dialog" aria-modal="true" aria-labelledby="anuncio-t">
-    <button class="anuncio-cerrar" data-cerrar aria-label="Cerrar anuncio">${ico('cerrar')}</button>
+    <div class="anuncio-top">
+      <span class="anuncio-marca"><img src="icons/icon.svg" alt="" width="32" height="32"> Feria <b>Pekerón</b></span>
+      <button class="anuncio-cerrar" data-cerrar aria-label="Cerrar anuncio">${ico('cerrar')}</button>
+    </div>
     <div class="anuncio-arte" aria-hidden="true">
-      <span class="anuncio-burbuja b1"></span><span class="anuncio-burbuja b2"></span>
-      <span class="anuncio-ico">${ico(a.icono || 'estrella')}</span>
-      <img src="icons/icon.svg" alt="" class="anuncio-logo" width="44" height="44">
+      <span class="anuncio-aro a1"></span><span class="anuncio-aro a2"></span>
+      <span class="anuncio-chispa c1">${ico('estrella')}</span><span class="anuncio-chispa c2">${ico('estrella')}</span>
+      <span class="anuncio-ilus">${ilus(a.icono || 'estrella')}</span>
     </div>
     <div class="anuncio-cuerpo">
       ${a.etiqueta ? `<span class="anuncio-etq">${esc(a.etiqueta)}</span>` : ''}
       <h2 id="anuncio-t">${esc(a.titulo)}</h2>
       <p>${esc(a.texto)}</p>
+    </div>
+    <div class="anuncio-acciones">
       <a class="btn btn-amarillo ancho btn-grande" href="${esc(a.link)}" ${externo ? 'target="_blank" rel="noopener"' : ''} data-ir>${esc(a.boton)}</a>
       ${a.secundario ? `<button class="btn-link ancho" data-cerrar>${esc(a.secundario)}</button>` : ''}
     </div>
@@ -51,5 +57,5 @@ export function mostrarAnuncio(ctx, { forzar = false } = {}) {
   const tecla = (e) => { if (e.key === 'Escape') cerrar(); };
   document.addEventListener('keydown', tecla);
   capa.onclick = (e) => { if (e.target === capa || e.target.closest('[data-cerrar]') || e.target.closest('[data-ir]')) cerrar(); };
-  setTimeout(() => { const b = capa.querySelector('[data-ir]'); if (b) b.focus(); }, 30);
+  setTimeout(() => { const b = capa.querySelector('.anuncio-cerrar'); if (b) b.focus(); }, 30);
 }

@@ -32,6 +32,7 @@ export async function vista(root, _r, ctx) {
     </div>
     <h2 class="grupo-tit">Cuenta</h2>
     <div class="menu-lista">
+      <a href="#notificaciones">${ico('campana')}<span><strong>Notificaciones</strong><small>Consultas, favoritos y novedades</small></span>${ico('derecha', 'chev')}</a>
       <a href="#perfil">${ico('usuario')}<span><strong>Configuración del perfil</strong><small>Nombre, WhatsApp y ubicación</small></span>${ico('derecha', 'chev')}</a>
       <button data-salir>${ico('salir')}<span><strong>Salir</strong><small>Cerrar sesión en este dispositivo</small></span></button>
     </div>`
@@ -39,6 +40,8 @@ export async function vista(root, _r, ctx) {
       <a href="#ingresar">${ico('usuario')}<span><strong>Ingresar</strong><small>Si ya tenés cuenta en la Feria</small></span>${ico('derecha', 'chev')}</a>
       <a href="#registrarse">${ico('mas')}<span><strong>Crear cuenta gratis</strong><small>Para vender y guardar tus favoritos en la cuenta</small></span>${ico('derecha', 'chev')}</a>
     </div>`}
+
+  <div class="menu-lista menu-solo"><button data-instalar>${ico('descargar')}<span><strong>Descargar la app</strong><small>Instalala en tu celular, gratis</small></span>${ico('derecha', 'chev')}</button></div>
 
   <a class="gestion-card" href="${esc(linkGestion)}" rel="noopener">
     <strong>¿Tenés un negocio?</strong><span>Con Pekerón Gestión controlás stock, ventas y caja, y tus productos aparecen en la Feria.</span></a>`;

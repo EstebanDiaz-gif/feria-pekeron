@@ -1,6 +1,7 @@
 // Categorías al estilo de las apps grandes: lista a la izquierda, grilla a la derecha.
 import { esc } from '../lib/util.js';
 import { ico } from '../lib/iconos.js';
+import { ilus } from '../lib/ilustraciones.js';
 import { CATEGORIAS, categoria } from '../datos/catalogo.js';
 import { linkGestion } from '../config.js';
 import { fijarBusqueda } from './buscar.js';
@@ -10,8 +11,8 @@ let elegida = '';
 const DESCUBRI = [
   { t: 'Cerca tuyo', i: 'ubicacion', bg: '#E6F0FF', fg: '#1D4ED8', accion: 'cerca' },
   { t: 'Tiendas', i: 'tienda', bg: '#FFF1DB', fg: '#B45309', h: '#tiendas' },
-  { t: 'Vender', i: 'mas', bg: '#FFE9A8', fg: '#7A4E00', h: '#publicar' },
-  { t: 'Usados', i: 'regalo', bg: '#E7F7E9', fg: '#15803D', accion: 'usados' },
+  { t: 'Vender', i: 'vender', bg: '#FFE9A8', fg: '#7A4E00', h: '#publicar' },
+  { t: 'Usados', i: 'usados', bg: '#E7F7E9', fg: '#15803D', accion: 'usados' },
   { t: 'Favoritos', i: 'corazon', bg: '#FDE8EF', fg: '#C2255C', h: '#favoritos' },
   { t: 'Consultados', i: 'chat', bg: '#E5F6F4', fg: '#0F766E', h: '#consultados' },
   { t: 'Vistos', i: 'ojo', bg: '#F6E8FF', fg: '#8B3FC4', h: '#vistos' },
@@ -20,7 +21,7 @@ const DESCUBRI = [
 ];
 
 const tile = (x) => {
-  const inner = `<span class="ct-ico" style="background:${x.bg};color:${x.fg}">${ico(x.i)}</span><span class="ct-txt">${esc(x.t)}</span>`;
+  const inner = `<span class="ct-ico" style="background:${x.bg}">${ilus(x.i)}</span><span class="ct-txt">${esc(x.t)}</span>`;
   if (x.instalar) return `<button class="ct" data-instalar>${inner}</button>`;
   if (x.accion) return `<button class="ct" data-accion="${x.accion}">${inner}</button>`;
   return `<a class="ct" href="${esc(x.h)}" ${x.ext ? 'target="_blank" rel="noopener"' : ''}>${inner}</a>`;
@@ -37,7 +38,7 @@ export async function vista(root, _r, ctx) {
     <section class="cat-grilla" aria-live="polite">
       ${c ? `
         <a class="cat-todo" href="#categoria-${c.id}" style="background:${c.bg};color:${c.fg}">
-          <span class="ct-ico grande">${ico(c.icono)}</span><span><small>Ver todo en</small><strong>${esc(c.nombre)}</strong></span>${ico('derecha', 'chev')}</a>
+          <span class="ct-ico grande">${ilus(c.icono)}</span><span><small>Ver todo en</small><strong>${esc(c.nombre)}</strong></span>${ico('derecha', 'chev')}</a>
         <div class="ct-grid">${c.subs.map((s) => tile({ t: s, i: c.icono, bg: c.bg, fg: c.fg, h: `#categoria-${c.id}~${encodeURIComponent(s)}` })).join('')}</div>`
       : `<div class="ct-grid">${DESCUBRI.map(tile).join('')}</div>
          <h2 class="ct-sub">Categorías</h2>
