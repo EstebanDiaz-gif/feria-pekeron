@@ -25,7 +25,25 @@ function abrir() {
   return dbp;
 }
 
+// Si el navegador no deja usar IndexedDB (algunas vistas previas o modo incógnito), se guarda en memoria
+// hasta recargar la página. `memoria` avisa a la interfaz para mostrarlo.
+export let memoria = false;
+const MEM = { perfiles: new Map(), tiendas: new Map(), publicaciones: new Map() };
+const CLAVE = { perfiles: 'uid', tiendas: 'slug', publicaciones: 'id' };
+function opMem(store, fn) {
+  const m = MEM[store];
+  const o = {
+    get: (k) => ({ result: m.get(k) }),
+    getAll: () => ({ result: [...m.values()] }),
+    put: (v) => { m.set(v[CLAVE[store]], structuredClone(v)); return {}; },
+    delete: (k) => { m.delete(k); return {}; },
+  };
+  const r = fn(o);
+  return Promise.resolve(r && r.result !== undefined ? structuredClone(r.result) : undefined);
+}
+
 async function op(store, modo, fn) {
+  if (memoria) return opMem(store, fn);
   const d = await abrir();
   return new Promise((ok, mal) => {
     const tx = d.transaction(store, modo);
@@ -50,7 +68,7 @@ async function avisar() { for (const f of oyentes) f(actual); }
 export const modo = 'local';
 
 export async function iniciar() {
-  await abrir();
+  try { await abrir(); } catch (e) { console.warn('IndexedDB no disponible: modo memoria', e); memoria = true; }
   const uid = leerSesion();
   actual = uid ? (await get('perfiles', uid)) || null : null;
   if (!actual) escribirSesion('');

@@ -115,7 +115,9 @@ async function mostrar() {
 function avisoModo() {
   const a = $('#aviso-modo');
   if (ctx.d.modo === 'local') {
-    a.innerHTML = `${ico('info')}<span><b>Modo prueba:</b> lo que publiques se guarda solo en este navegador. Nadie más lo ve todavía.</span>`;
+    a.innerHTML = ctx.d.memoria
+      ? `${ico('info')}<span><b>Modo prueba:</b> este navegador no permite guardar datos, así que lo que cargues se borra al recargar la página.</span>`
+      : `${ico('info')}<span><b>Modo prueba:</b> lo que publiques se guarda solo en este navegador. Nadie más lo ve todavía.</span>`;
     a.hidden = false;
   }
 }
