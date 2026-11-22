@@ -5,10 +5,30 @@ import { ico } from './iconos.js';
 
 let aviso = null;
 window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); aviso = e; });
-window.addEventListener('appinstalled', () => { aviso = null; });
+window.addEventListener('appinstalled', () => { aviso = null; marcar(true); });
 
 export const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-export const instalada = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const abiertaComoApp = () => ['standalone', 'fullscreen', 'minimal-ui'].some((m) => matchMedia(`(display-mode: ${m})`).matches)
+  || navigator.standalone === true || document.referrer.startsWith('android-app://');
+let yaInstalada = false;
+try { yaInstalada = localStorage.getItem('feria.instalada') === '1'; } catch { /* nada */ }
+
+function marcar(si) {
+  yaInstalada = si;
+  try { si ? localStorage.setItem('feria.instalada', '1') : localStorage.removeItem('feria.instalada'); } catch { /* nada */ }
+  document.body.classList.toggle('app-instalada', si || abiertaComoApp());
+}
+
+export const instalada = () => abiertaComoApp() || yaInstalada;
+
+// Oculta "Descargar la app" si se abrió desde la app instalada o si el navegador avisa que ya está instalada.
+export async function revisarInstalacion() {
+  document.body.classList.toggle('app-instalada', instalada());
+  if (abiertaComoApp()) return;
+  if ('getInstalledRelatedApps' in navigator) {
+    try { const l = await navigator.getInstalledRelatedApps(); marcar(l.length > 0); } catch { /* sin soporte */ }
+  }
+}
 
 export function abrirInstalar() {
   const ios = esIOS();

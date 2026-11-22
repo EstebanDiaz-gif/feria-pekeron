@@ -5,7 +5,7 @@ import { zonaInicial } from './config.js';
 import { $, toast } from './lib/dom.js';
 import { esc } from './lib/util.js';
 import { ico } from './lib/iconos.js';
-import { abrirInstalar } from './lib/instalar.js';
+import { abrirInstalar, revisarInstalacion } from './lib/instalar.js';
 import { elegirZona } from './vistas/zona.js';
 
 const RUTAS = {
@@ -134,6 +134,7 @@ async function arrancar() {
   }
   avisoModo();
   pintarCabecera();
+  revisarInstalacion();
   ctx.d.auth.alCambiar(() => { pintarCabecera(); });
   window.addEventListener('hashchange', mostrar);
   document.addEventListener('click', (e) => { if (e.target.closest('[data-instalar]') && !e.target.closest('#top')) abrirInstalar(); });

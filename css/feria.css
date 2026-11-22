@@ -456,3 +456,6 @@ legend { margin-bottom: 8px; padding: 0; }
   .grupo-tit { max-width: 720px; margin-left: auto; margin-right: auto; }
   .cuenta-cab { border-radius: 0 0 var(--r2) var(--r2); }
 }
+
+/* Con la app instalada no se ofrece descargarla */
+body.app-instalada [data-instalar] { display: none !important; }
