@@ -9,8 +9,14 @@ export function fijarBusqueda(c) { Object.assign(est, { q: '', categoria: '', su
 
 export async function vista(root, r, ctx) {
   // La categoría la define la dirección: #categoria-ropa la fija, #buscar la limpia.
-  const catRuta = r.nombre === 'categoria' && categoria(r.param) ? r.param : '';
+  // #categoria-ropa~Zapatillas abre la categoría con la subcategoría ya elegida.
+  const [cId, subRuta] = r.nombre === 'categoria' ? r.param.split('~') : [''];
+  const catRuta = categoria(cId) ? cId : '';
   if (est.categoria !== catRuta) Object.assign(est, { categoria: catRuta, sub: '' });
+  if (subRuta !== undefined && catRuta) {
+    const s = decodeURIComponent(subRuta);
+    est.sub = categoria(catRuta).subs.includes(s) ? s : '';
+  }
   const cat = categoria(est.categoria);
   const lugar = ctx.zona.localidad || ctx.zona.provincia;
 
@@ -45,7 +51,7 @@ export async function vista(root, r, ctx) {
     const h = est.categoria ? 'categoria-' + est.categoria : 'buscar';
     ctx.ir(h);
   });
-  root.querySelectorAll('[data-sub]').forEach((b) => b.onclick = () => { est.sub = b.dataset.sub; vista(root, r, ctx); });
+  root.querySelectorAll('[data-sub]').forEach((b) => b.onclick = () => { est.sub = b.dataset.sub; ctx.ir('categoria-' + est.categoria + (est.sub ? '~' + encodeURIComponent(est.sub) : '')); });
   root.querySelector('[data-estado]').onchange = (e) => { est.estado = e.target.value; resultados(); };
   root.querySelector('[data-orden]').onchange = (e) => { est.orden = e.target.value; resultados(); };
   const z = root.querySelector('[data-zona]');

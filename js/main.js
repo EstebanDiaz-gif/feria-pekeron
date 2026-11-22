@@ -7,9 +7,12 @@ import { esc } from './lib/util.js';
 import { ico } from './lib/iconos.js';
 import { abrirInstalar, revisarInstalacion } from './lib/instalar.js';
 import { elegirZona } from './vistas/zona.js';
+import { fijarBusqueda } from './vistas/buscar.js';
+import { mostrarAnuncio } from './lib/anuncio.js';
 
 const RUTAS = {
   inicio: () => import('./vistas/inicio.js'),
+  categorias: () => import('./vistas/categorias.js'),
   buscar: () => import('./vistas/buscar.js'),
   categoria: () => import('./vistas/buscar.js'),
   producto: () => import('./vistas/producto.js'),
@@ -59,29 +62,37 @@ const ctx = {
 };
 
 function pintarCabecera() {
-  const u = ctx.usuario;
   $('#top').innerHTML = `<div class="top-in">
     <div class="top-fila">
       <a class="marca" href="#inicio" aria-label="Feria Pekerón, inicio">
-        <img src="icons/icon.svg" alt="" width="30" height="30"><span>Feria <b>Pekerón</b></span></a>
+        <img src="icons/icon.svg" alt="" width="36" height="36"><span class="marca-txt">Feria <b>Pekerón</b></span></a>
+      <form class="top-buscar" role="search" data-top-buscar>
+        ${ico('buscar')}<input type="search" name="q" placeholder="Buscar en la Feria" aria-label="Buscar productos" autocomplete="off" enterkeyhint="search">
+      </form>
       <nav class="top-links" aria-label="Secciones">
-        <a href="#buscar">Buscar</a><a href="#tiendas">Tiendas</a><a href="#publicar">Vender</a>
-        <a href="#cuenta">Mi cuenta</a>
+        <a href="#categorias">Categorías</a><a href="#tiendas">Tiendas</a><a href="#publicar">Vender</a><a href="#cuenta">Mi cuenta</a>
       </nav>
       <button class="btn-ico top-instalar" data-instalar aria-label="Descargar la app">${ico('descargar')}</button>
     </div>
-    <button class="zona" data-zona>${ico('ubicacion')}<span>${esc(ctx.zona.localidad || ctx.zona.provincia || 'Todo el país')}</span><span class="zona-cambiar">Cambiar</span></button>
+    <button class="zona" data-zona>${ico('ubicacion')}<span>${esc(ctx.zona.localidad || ctx.zona.provincia || 'Todo el país')}</span>${ico('abajo', 'zona-flecha')}</button>
   </div>`;
   $('#top [data-zona]').onclick = () => ctx.cambiarZona();
   $('#top [data-instalar]').onclick = () => abrirInstalar();
+  $('#top [data-top-buscar]').onsubmit = (e) => {
+    e.preventDefault();
+    const q = String(new FormData(e.target).get('q') || '').trim();
+    e.target.q.blur();
+    fijarBusqueda({ q });
+    ctx.ir('buscar');
+  };
 }
 
 function pintarTabbar(activa) {
   const it = [
-    ['inicio', 'Inicio', 'casa'], ['buscar', 'Buscar', 'buscar'], ['publicar', 'Vender', 'mas'],
+    ['inicio', 'Inicio', 'casa'], ['categorias', 'Categorías', 'grilla'], ['publicar', 'Vender', 'mas'],
     ['tiendas', 'Tiendas', 'tienda'], ['cuenta', 'Mi cuenta', 'usuario'],
   ];
-  const grupo = { categoria: 'buscar', producto: 'buscar', tienda: 'tiendas' };
+  const grupo = { categoria: 'categorias', buscar: 'categorias', tienda: 'tiendas' };
   const cuenta = ['panel', 'mis-productos', 'editar', 'mi-tienda', 'perfil', 'ingresar', 'registrarse', 'consultados', 'favoritos', 'vistos'];
   const a = cuenta.includes(activa) ? 'cuenta' : grupo[activa] || activa;
   $('#tabbar').innerHTML = it.map(([h, t, i]) => {
@@ -139,6 +150,7 @@ async function arrancar() {
   window.addEventListener('hashchange', mostrar);
   document.addEventListener('click', (e) => { if (e.target.closest('[data-instalar]') && !e.target.closest('#top')) abrirInstalar(); });
   mostrar();
+  setTimeout(() => mostrarAnuncio(ctx), 900);
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
     navigator.serviceWorker.register('sw.js').catch(() => { /* vista previa o navegador sin soporte */ });
   }
