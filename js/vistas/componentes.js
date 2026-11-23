@@ -9,9 +9,13 @@ export function foto(p, cls = '') {
   return s ? `<img class="${cls}" src="${s}" alt="" loading="lazy">` : `<span class="sin-foto ${cls}">${ico('foto')}</span>`;
 }
 
+// Publicaciones que se muestran en tarjetas (para el corazón de favoritos sin volver a pedirlas).
+export const enPantalla = new Map();
 export function tarjetaPub(p, { mostrarTienda = true } = {}) {
+  enPantalla.set(String(p.id), p);
   return `<a class="tarjeta" href="#producto-${esc(p.id)}">
     <span class="tarjeta-foto">${foto(p)}
+      <button class="tarjeta-fav" type="button" data-fav-card="${esc(p.id)}" aria-pressed="false" aria-label="Guardar en favoritos">${ico('corazon')}</button>
       ${p.tienda && mostrarTienda ? `<span class="sello">${ico('tienda')} Tienda</span>` : ''}
       ${p.estado === 'usado' ? '<span class="sello sello-usado">Usado</span>' : ''}
       ${esFundador(p.uid) ? `<span class="sello sello-fund">${estrella()} Fundador</span>` : ''}</span>

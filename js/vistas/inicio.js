@@ -1,4 +1,4 @@
-// Inicio: carrusel de banners, accesos rápidos, cerca tuyo, tiendas, categorías y lo más nuevo.
+// Inicio: carrusel, categorías, cartel para negocios, Fundadores, destacados, cerca tuyo, tiendas y lo más nuevo.
 import { esc } from '../lib/util.js';
 import { ico } from '../lib/iconos.js';
 import { ilus } from '../lib/ilustraciones.js';
@@ -8,14 +8,10 @@ import { grilla, seccion, vacio, avatar } from './componentes.js';
 import { fijarBusqueda } from './buscar.js';
 import * as Fund from '../lib/fundadores.js';
 
-const ACCESOS = [
-  { t: 'Categorías', i: 'grilla', bg: '#E6F0FF', fg: '#1D4ED8', h: '#categorias' },
-  { t: 'Cerca tuyo', i: 'ubicacion', bg: '#E5F6F4', fg: '#0F766E', accion: 'cerca' },
-  { t: 'Tiendas', i: 'tienda', bg: '#FFF1DB', fg: '#B45309', h: '#tiendas' },
-  { t: 'Vender', i: 'vender', bg: '#FFE9A8', fg: '#7A4E00', h: '#publicar' },
-  { t: 'Usados', i: 'usados', bg: '#E7F7E9', fg: '#15803D', accion: 'usados' },
-  { t: 'Favoritos', i: 'corazon', bg: '#FDE8EF', fg: '#C2255C', h: '#favoritos' },
-  { t: 'Gestión', i: 'panel', bg: '#E8ECF8', fg: '#102468', h: linkGestion, ext: true },
+// Categorías que se muestran en el inicio (nombre corto). El resto está en "Más".
+const ATAJOS = [
+  { id: 'ropa', t: 'Ropa y calzado' }, { id: 'tecnologia', t: 'Tecnología' }, { id: 'hogar', t: 'Hogar' },
+  { id: 'deportes', t: 'Deportes' }, { id: 'belleza', t: 'Belleza' }, { id: 'almacen', t: 'Almacén' },
 ];
 
 let timer = 0;
@@ -48,40 +44,37 @@ export async function vista(root, _r, ctx) {
     <div class="puntos" role="tablist" aria-label="Elegir novedad">${banners.map((b, i) => `<button role="tab" aria-label="Novedad ${i + 1}" data-punto="${i}" class="${i ? '' : 'on'}"></button>`).join('')}</div>
   </section>
 
-  <nav class="accesos-fila" aria-label="Accesos rápidos">
-    ${ACCESOS.map((a) => {
-      const inner = `<span class="ac-ico" style="background:${a.bg}">${ilus(a.i)}</span><span>${esc(a.t)}</span>`;
-      return a.accion ? `<button class="ac" data-accion="${a.accion}">${inner}</button>`
-        : `<a class="ac" href="${esc(a.h)}" ${a.ext ? 'target="_blank" rel="noopener"' : ''}>${inner}</a>`;
-    }).join('')}
+  <nav class="cats-grid" aria-label="Categorías">
+    <a class="cg" href="#buscar"><span class="cg-ico" style="background:#E8EEFF">${ilus('grilla')}</span><span>Todas</span></a>
+    ${ATAJOS.map((a) => { const c = CATEGORIAS.find((x) => x.id === a.id); return `<a class="cg" href="#categoria-${c.id}"><span class="cg-ico" style="background:${c.bg}">${ilus(c.icono)}</span><span>${esc(a.t)}</span></a>`; }).join('')}
+    <a class="cg" href="#categorias"><span class="cg-ico" style="background:#EEF0F4">${ilus('caja')}</span><span>Más</span></a>
   </nav>
+
+  <a class="negocio" href="#publicar">
+    <span class="negocio-ilus">${ilus('tienda')}</span>
+    <span class="negocio-txt"><strong>¿Tenés un negocio o emprendimiento?</strong>
+      <span>Creá tu tienda, publicá tus productos y llegá a más clientes.</span>
+      <span class="btn btn-amarillo btn-chico">Publicar gratis ${ico('derecha')}</span></span>
+  </a>
+
+  ${ctx.usuario && Fund.esFundador(ctx.usuario.uid) ? '' : Fund.cartelCupo()}
+  ${deFundadores.length ? seccion("⭐ De Vendedores Fundadores", grilla(deFundadores)) : ''}
+  ${destacadas.length ? seccion('Destacados', grilla(destacadas)) : ''}
+
+  ${lugar && cerca.length ? seccion(`🔥 Cerca tuyo · ${lugar}`, grilla(cerca), '<button class="link-btn" data-accion="cerca">Ver todo ›</button>') : ''}
+
+  ${tiendas.length ? seccion('Tiendas', `<div class="tiendas-fila">${tiendas.slice(0, 12).map((t) => `
+      <a class="tienda-mini" href="#tienda-${esc(t.slug)}">${avatar(t, 'avatar-l')}<span>${esc(t.nombre)}</span>
+      ${t.origen === 'gestion' ? `<small>${ico('check')} Pekerón</small>` : ''}</a>`).join('')}</div>`, '<a href="#tiendas">Ver todas</a>') : ''}
+
+  ${recientes.length ? seccion('Lo más nuevo', grilla(recientes), '<a href="#buscar">Ver todo ›</a>') : seccion('Lo más nuevo',
+    vacio('Todavía no hay publicaciones', 'La Feria recién arranca. Podés ser de los primeros en publicar.', '<a class="btn btn-pri" href="#publicar">Publicar gratis</a>'))}
 
   <button class="banner-app" data-instalar>
     <img src="icons/icon-192.png" alt="" width="44" height="44">
     <span><strong>Descargá la app de la Feria</strong><span>Gratis y ocupa poco espacio</span></span>
     <span class="btn btn-amarillo btn-chico">Descargar</span>
   </button>
-
-  ${ctx.usuario && Fund.esFundador(ctx.usuario.uid) ? '' : Fund.cartelCupo()}
-  ${deFundadores.length ? seccion("⭐ De Vendedores Fundadores", grilla(deFundadores)) : ''}
-  ${destacadas.length ? seccion('Destacados', grilla(destacadas)) : ''}
-
-  ${lugar && cerca.length ? seccion(`Cerca tuyo · ${lugar}`, grilla(cerca), '<button class="link-btn" data-accion="cerca">Ver todo</button>') : ''}
-
-  ${tiendas.length ? seccion('Tiendas', `<div class="tiendas-fila">${tiendas.slice(0, 12).map((t) => `
-      <a class="tienda-mini" href="#tienda-${esc(t.slug)}">${avatar(t, 'avatar-l')}<span>${esc(t.nombre)}</span>
-      ${t.origen === 'gestion' ? `<small>${ico('check')} Pekerón</small>` : ''}</a>`).join('')}</div>`, '<a href="#tiendas">Ver todas</a>') : ''}
-
-  ${seccion('Explorá por categoría', `<div class="cats-fila">${CATEGORIAS.map((c) => `
-      <a class="cat-chip" href="#categoria-${c.id}" style="background:${c.bg};color:${c.fg}"><span class="cat-chip-ilus">${ilus(c.icono)}</span><span>${esc(c.nombre)}</span></a>`).join('')}</div>`, '<a href="#categorias">Ver todas</a>')}
-
-  ${recientes.length ? seccion('Lo más nuevo', grilla(recientes), '<a href="#buscar">Ver todo</a>') : seccion('Lo más nuevo',
-    vacio('Todavía no hay publicaciones', 'La Feria recién arranca. Podés ser de los primeros en publicar.', '<a class="btn btn-pri" href="#publicar">Publicar gratis</a>'))}
-
-  <section class="cta-vender">
-    <div><strong>¿Tenés algo para vender?</strong><span>Sacale una foto y publicalo en un minuto.</span></div>
-    <a class="btn btn-amarillo" href="#publicar">${ico('mas')} Publicar gratis</a>
-  </section>
 
   <footer class="pie">
     <a href="${esc(linkGestion)}" rel="noopener">¿Tenés un negocio? Conocé <b>Pekerón Gestión</b>: stock, ventas y caja desde el celular.</a>

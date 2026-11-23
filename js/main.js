@@ -10,6 +10,7 @@ import { elegirZona } from './vistas/zona.js';
 import { fijarBusqueda } from './vistas/buscar.js';
 import { mostrarAnuncio } from './lib/anuncio.js';
 import * as Fund from './lib/fundadores.js';
+import { enPantalla } from './vistas/componentes.js';
 
 const RUTAS = {
   inicio: () => import('./vistas/inicio.js'),
@@ -80,21 +81,25 @@ const ctx = {
 };
 
 function pintarCabecera() {
+  const lugar = esc(ctx.zona.localidad || ctx.zona.provincia || 'Todo el país');
   $('#top').innerHTML = `<div class="top-in">
     <div class="top-fila">
-      <a class="marca" href="#inicio" aria-label="Feria Pekerón, inicio">
-        <img src="icons/icon.svg" alt="" width="36" height="36"><span class="marca-txt">Feria <b>Pekerón</b></span></a>
-      <form class="top-buscar" role="search" data-top-buscar>
-        ${ico('buscar')}<input type="search" name="q" placeholder="Buscar en la Feria" aria-label="Buscar productos" autocomplete="off" enterkeyhint="search">
-      </form>
+      <a class="marca" href="#inicio" aria-label="Feria Pekerón, inicio"><img src="icons/icon.svg" alt="" width="38" height="38"></a>
+      <a class="marca-nombre" href="#inicio" aria-hidden="true" tabindex="-1"><span>Feria</span> <b>Pekerón</b></a>
       <nav class="top-links" aria-label="Secciones">
         <a href="#categorias">Categorías</a><a href="#tiendas">Tiendas</a><a href="#publicar">Vender</a><a href="#cuenta">Mi cuenta</a>
       </nav>
       <a class="btn-ico campana" href="#notificaciones" aria-label="Notificaciones">${ico('campana')}<span class="campana-num" data-campana hidden></span></a>
     </div>
-    <button class="zona" data-zona>${ico('ubicacion')}<span>${esc(ctx.zona.localidad || ctx.zona.provincia || 'Todo el país')}</span>${ico('abajo', 'zona-flecha')}</button>
+    <form class="top-buscar" role="search" data-top-buscar>
+      ${ico('buscar')}<input type="search" name="q" placeholder="Buscar productos, tiendas o servicios" aria-label="Buscar productos, tiendas o servicios" autocomplete="off" enterkeyhint="search">
+    </form>
+    <div class="zona-fila">
+      <button class="zona" data-zona>${ico('ubicacion')}<span>${lugar}</span>${ico('abajo', 'zona-flecha')}</button>
+      <button class="zona-pill" data-zona>${ico('ubicacion')} Cambiar zona</button>
+    </div>
   </div>`;
-  $('#top [data-zona]').onclick = () => ctx.cambiarZona();
+  $('#top').querySelectorAll('[data-zona]').forEach((b) => b.onclick = () => ctx.cambiarZona());
   $('#top [data-top-buscar]').onsubmit = (e) => {
     e.preventDefault();
     const q = String(new FormData(e.target).get('q') || '').trim();
@@ -103,6 +108,27 @@ function pintarCabecera() {
     ctx.ir('buscar');
   };
 }
+
+// ---- Corazón de favoritos en las tarjetas ----
+let favIds = null;
+async function cargarFavs() { try { favIds = new Set((await ctx.d.favoritos()).map((x) => String(x.id))); } catch { favIds = new Set(); } return favIds; }
+async function pintarFavs(root) {
+  const bs = root.querySelectorAll('[data-fav-card]'); if (!bs.length) return;
+  const ids = favIds || await cargarFavs();
+  bs.forEach((b) => marcarFav(b, ids.has(b.dataset.favCard)));
+}
+function marcarFav(b, si) { b.classList.toggle('on', si); b.setAttribute('aria-pressed', si); b.setAttribute('aria-label', si ? 'Quitar de favoritos' : 'Guardar en favoritos'); }
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest && e.target.closest('[data-fav-card]');
+  if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const id = b.dataset.favCard, p = enPantalla.get(id); if (!p) return;
+  const si = b.getAttribute('aria-pressed') !== 'true';
+  const todos = document.querySelectorAll(`[data-fav-card="${CSS.escape(id)}"]`);
+  todos.forEach((x) => marcarFav(x, si));
+  try { await ctx.d.ponerFavorito(p, si); (favIds || (favIds = new Set()))[si ? 'add' : 'delete'](id); toast(si ? 'Guardado en favoritos.' : 'Quitado de favoritos.'); }
+  catch (er) { todos.forEach((x) => marcarFav(x, !si)); toast(er.message, 'error'); }
+}, true);
 
 function pintarTabbar(activa) {
   const it = [
@@ -135,6 +161,7 @@ async function mostrar() {
     root.innerHTML = '<div class="cargando">Cargando…</div>';
     await m.vista(root, { nombre, param }, ctx);
     if (n !== turno) return;
+    pintarFavs(root);
     window.scrollTo(0, 0);
     root.focus({ preventScroll: true });
   } catch (e) {
@@ -163,7 +190,7 @@ async function arrancar() {
   avisoModo();
   pintarCabecera();
   revisarInstalacion();
-  ctx.d.auth.alCambiar(() => { Fund.reclamar(ctx); pintarCabecera(); ctx.actualizarCampana(ctx.campana); ctx.contarNotificaciones(); });
+  ctx.d.auth.alCambiar(() => { favIds = null; Fund.reclamar(ctx); pintarCabecera(); ctx.actualizarCampana(ctx.campana); ctx.contarNotificaciones(); });
   window.addEventListener('hashchange', mostrar);
   document.addEventListener('click', (e) => { if (e.target.closest('[data-instalar]') && !e.target.closest('#top')) abrirInstalar(); });
   mostrar();

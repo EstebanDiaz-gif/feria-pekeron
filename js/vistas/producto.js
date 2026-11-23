@@ -36,7 +36,7 @@ export async function vista(root, r, ctx) {
   <div class="detalle">
     <div class="galeria">
       ${fotos.length ? `<div class="galeria-pista" data-pista>${fotos.map((s, i) => `<img src="${s}" alt="Foto ${i + 1} de ${esc(p.titulo)}">`).join('')}</div>
-        ${fotos.length > 1 ? `<span class="galeria-num" data-num>1 / ${fotos.length}</span>` : ''}`
+        ${fotos.length > 1 ? `<span class="galeria-num" data-num>1/${fotos.length}</span>` : ''}`
       : `<div class="galeria-vacia">${ico('foto')}<span>Sin fotos</span></div>`}
     </div>
 
@@ -45,7 +45,13 @@ export async function vista(root, r, ctx) {
       <p class="meta">${metaPub(p)}</p>
       <h1 class="detalle-tit">${esc(p.titulo)}</h1>
       <p class="detalle-precio">${fmtPrecio(p.precio)}</p>
-      ${vendida ? '<p class="chip-estado gris grande">Vendido</p>' : '<p class="txt-ok">Sin comisión: el precio lo pone quien vende</p>'}
+      ${vendida ? '<p class="disp disp-no">Vendido</p>' : '<p class="disp">Disponible</p>'}
+      <div class="det-chips">
+        <span class="det-chip det-chip-am">${esc(ESTADOS[p.estado] || '')}</span>
+        ${p.subcategoria ? `<span class="det-chip">${esc(p.subcategoria)}</span>` : ''}
+        ${(v.talles || []).length === 1 ? `<span class="det-chip">Talle ${esc(v.talles[0])}</span>` : ''}
+        ${(v.colores || []).length === 1 ? `<span class="det-chip">${esc(v.colores[0])}</span>` : ''}
+      </div>
 
       ${(v.talles && v.talles.length) || (v.colores && v.colores.length) ? `<div class="variantes">
         ${v.talles && v.talles.length ? `<div><span class="etq">Talles</span><div class="chips-fijos">${v.talles.map((x) => `<span class="chip-fijo">${esc(x)}</span>`).join('')}</div></div>` : ''}
@@ -61,10 +67,12 @@ export async function vista(root, r, ctx) {
 
       ${p.descripcion ? `<h2 class="sub-tit">Descripción</h2><p class="descripcion">${esc(p.descripcion)}</p>` : ''}
 
+      <h2 class="sub-tit">Información del vendedor</h2>
       <div class="vendedor">
         ${avatar(t || { nombre: p.vendedorNombre })}
         <div class="vendedor-txt"><strong>${esc(t ? t.nombre : p.vendedorNombre)}</strong>${insignia(p.uid)}
-          <span class="txt-sec">${t ? (t.origen === 'gestion' ? 'Tienda Pekerón' : 'Tienda en la Feria') : 'Vendedor particular'}${t && t.localidad ? ' · ' + esc(t.localidad) : ''}</span></div>
+          <span class="txt-sec">${t ? (t.origen === 'gestion' ? 'Tienda Pekerón' : 'Tienda en la Feria') : 'Vendedor particular'}</span>
+          ${lugar ? `<span class="txt-sec vend-lugar">${ico('ubicacion')} ${esc(p.localidad || lugar)}</span>` : ''}</div>
         ${t ? `<a class="btn btn-sec btn-chico" href="#tienda-${esc(t.slug)}">Ver tienda</a>` : ''}
       </div>
 
@@ -76,7 +84,7 @@ export async function vista(root, r, ctx) {
 
   <div class="barra-accion">
     ${vendida ? '<span class="btn btn-sec ancho" aria-disabled="true">Este producto ya se vendió</span>'
-      : wa ? `<a class="btn btn-wa ancho" href="${esc(wa)}" target="_blank" rel="noopener">${ico('whatsapp')} Consultar por WhatsApp</a>`
+      : wa ? `<a class="btn btn-wa ancho" href="${esc(wa)}" target="_blank" rel="noopener">${ico('whatsapp')} Contactar por WhatsApp</a>`
       : '<span class="btn btn-sec ancho" aria-disabled="true">El vendedor no cargó su WhatsApp</span>'}
     ${p.origen === 'gestion' && /^https:\/\/pekeronapp\.com\//.test(p.linkCatalogo || '') ? `<a class="btn btn-sec ancho btn-catalogo" href="${esc(p.linkCatalogo)}" target="_blank" rel="noopener">${ico('tienda')} Ver todo el catálogo y hacer el pedido</a>` : ''}
   </div>`;
@@ -106,6 +114,6 @@ export async function vista(root, r, ctx) {
   };
   const pista = root.querySelector('[data-pista]'), num = root.querySelector('[data-num]');
   if (pista && num) pista.addEventListener('scroll', () => {
-    num.textContent = `${Math.round(pista.scrollLeft / pista.clientWidth) + 1} / ${fotos.length}`;
+    num.textContent = `${Math.round(pista.scrollLeft / pista.clientWidth) + 1}/${fotos.length}`;
   }, { passive: true });
 }
