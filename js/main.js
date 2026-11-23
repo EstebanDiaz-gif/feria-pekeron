@@ -60,6 +60,7 @@ const ctx = {
     if (z) { ctx.zona = z; guardarZona(z); pintarCabecera(); ctx.actualizarCampana(ctx.campana); mostrar(); }
   },
   volverA: '',
+  despuesDeCuenta: '',
   campana: 0,
   actualizarCampana(n) {
     ctx.campana = n;
@@ -164,7 +165,12 @@ async function arrancar() {
   window.addEventListener('hashchange', mostrar);
   document.addEventListener('click', (e) => { if (e.target.closest('[data-instalar]') && !e.target.closest('#top')) abrirInstalar(); });
   mostrar();
-  setTimeout(() => mostrarAnuncio(ctx), 900);
+  // Viene del QR de "Descargá la app" (feria.pekeronapp.com/?app): se ofrece instalar en vez del anuncio.
+  const desdeQR = new URLSearchParams(location.search).has('app');
+  if (desdeQR) {
+    history.replaceState(null, '', location.pathname + location.hash);
+    setTimeout(() => { if (!document.body.classList.contains('app-instalada')) abrirInstalar(); }, 1500);
+  } else setTimeout(() => mostrarAnuncio(ctx), 900);
   setTimeout(() => ctx.contarNotificaciones(), 2500);
   setInterval(() => { if (!document.hidden) ctx.contarNotificaciones(); }, 5 * 60000);
   if ('serviceWorker' in navigator && location.protocol === 'https:') {

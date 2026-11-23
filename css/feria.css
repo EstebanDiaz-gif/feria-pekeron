@@ -677,3 +677,14 @@ body.app-instalada [data-instalar] { display: none !important; }
   .anuncio-cuerpo { max-width: 520px; text-align: center; align-items: center; }
   .anuncio-etq { align-self: center; }
 }
+
+/* ---------- Cuenta para escribir por WhatsApp ---------- */
+.acceso { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 4px 2px 2px; }
+.acceso-ilus { width: 92px; height: 92px; padding: 12px; border-radius: 28px; background: linear-gradient(145deg, #E7FBEF, #CDEFE0); }
+.acceso-ilus .ilus { width: 100%; height: 100%; }
+.acceso h2 { font-size: 21px; line-height: 1.2; margin: 6px 0 0; color: var(--tinta); }
+.acceso p { margin: 0 0 6px; }
+.acceso .btn-link { background: none; border: 0; color: var(--tinta); font: inherit; font-weight: 600; padding: 10px; cursor: pointer; opacity: .7; }
+.btn-wa.wa-listo { animation: waListo 1.4s ease-in-out 3; box-shadow: 0 0 0 0 rgba(37,211,102,.6); }
+@keyframes waListo { 0% { box-shadow: 0 0 0 0 rgba(37,211,102,.6); } 70% { box-shadow: 0 0 0 14px rgba(37,211,102,0); } 100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); } }
+@media (prefers-reduced-motion: reduce) { .btn-wa.wa-listo { animation: none; outline: 3px solid #25D366; } }

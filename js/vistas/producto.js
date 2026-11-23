@@ -1,5 +1,6 @@
 // Detalle de una publicación: fotos, precio, descripción, vendedor, ubicación y WhatsApp.
 import { esc, srcSeguro, fmtPrecio, waLink } from '../lib/util.js';
+import { protegerWhatsApp } from '../lib/acceso.js';
 import { ico } from '../lib/iconos.js';
 import { toast } from '../lib/dom.js';
 import { categoria, ESTADOS } from '../datos/catalogo.js';
@@ -93,6 +94,8 @@ export async function vista(root, r, ctx) {
     catch (e) { pintarFav(!si); toast(e.message, 'error'); }
   };
 
+  // Para escribir hace falta cuenta (navegar no).
+  if (protegerWhatsApp(root, ctx, { vendedor: (t && t.nombre) || '' }) === 'listo') toast('¡Listo! Ya podés escribirle por WhatsApp.');
   // Consulta: queda registrada para el aviso "¿Ya lo vendiste?" del vendedor y en "Consultados" del comprador.
   const btnWa = root.querySelector('.btn-wa');
   if (btnWa && !mia) btnWa.addEventListener('click', () => { ctx.d.registrarConsulta(p).catch(() => {}); });

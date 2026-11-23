@@ -105,7 +105,7 @@ function registro(root, ctx) {
     const b = f.querySelector('[type=submit]'); cargandoBtn(b, true, 'Creando…');
     try {
       await ctx.d.auth.registrar(d);
-      toast(d.tipo === 'comercio' ? '¡Listo! Ahora armá tu tienda.' : '¡Listo! Ya podés publicar.');
+      if (ctx.despuesDeCuenta !== 'whatsapp') toast(d.tipo === 'comercio' ? '¡Listo! Ahora armá tu tienda.' : '¡Listo! Ya podés publicar.');
       const ir = destino(ctx);
       // Un comerciante nuevo arma primero su tienda, salvo que venga de otra pantalla puntual.
       ctx.ir(d.tipo === 'comercio' && ir === 'panel' ? 'mi-tienda' : ir);

@@ -1,5 +1,6 @@
 // Página pública de una tienda: portada, perfil, datos de contacto y catálogo.
 import { esc, srcSeguro, waLink } from '../lib/util.js';
+import { protegerWhatsApp } from '../lib/acceso.js';
 import { ico } from '../lib/iconos.js';
 import { toast } from '../lib/dom.js';
 import { avatar, grilla, vacio } from './componentes.js';
@@ -36,6 +37,7 @@ export async function vista(root, r, ctx) {
       ${prods.length ? grilla(prods, { mostrarTienda: false }) : vacio('Esta tienda todavía no publicó productos', mia ? 'Publicá tu primer producto y aparece acá.' : 'Volvé a mirar en unos días.', mia ? '<a class="btn btn-pri" href="#publicar">Publicar</a>' : '')}
     </section>`;
 
+  protegerWhatsApp(root, ctx, { vendedor: t.nombre });
   root.querySelector('[data-atras]').onclick = () => { if (history.length > 1) history.back(); else ctx.ir('tiendas'); };
   root.querySelector('[data-link]').onclick = async () => {
     try { await navigator.clipboard.writeText(url); toast('Link de la tienda copiado.'); }
