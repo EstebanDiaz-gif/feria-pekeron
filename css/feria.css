@@ -688,3 +688,40 @@ body.app-instalada [data-instalar] { display: none !important; }
 .btn-wa.wa-listo { animation: waListo 1.4s ease-in-out 3; box-shadow: 0 0 0 0 rgba(37,211,102,.6); }
 @keyframes waListo { 0% { box-shadow: 0 0 0 0 rgba(37,211,102,.6); } 70% { box-shadow: 0 0 0 14px rgba(37,211,102,0); } 100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); } }
 @media (prefers-reduced-motion: reduce) { .btn-wa.wa-listo { animation: none; outline: 3px solid #25D366; } }
+
+/* ---------- Vendedores Fundadores ---------- */
+.fundador { display: inline-flex; align-items: center; gap: 5px; vertical-align: middle; background: linear-gradient(135deg, #FFE3A3, #FFC857); color: #5B3B00; font-size: 12px; font-weight: 800; padding: 4px 10px 4px 7px; border-radius: 999px; box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 2px 6px rgba(181,120,0,.25); white-space: nowrap; }
+.fundador svg { width: 15px; height: 15px; color: #B7791F; }
+.fundador-chica { font-size: 11px; padding: 2px 7px 2px 5px; }
+.fundador-chica svg { width: 13px; height: 13px; }
+.vendedor-txt .fundador, .cuenta-cab .fundador { margin: 4px 0; }
+.tienda-cab .fundador { margin: 2px auto 6px; }
+.sello-fund { top: auto; bottom: 8px; left: 8px; background: linear-gradient(135deg, #FFE3A3, #FFC857); color: #5B3B00; }
+.sello-fund svg { width: 12px; height: 12px; color: #B7791F; }
+.seccion h2 svg, .sec-tit svg { width: 20px; height: 20px; color: #E0A526; vertical-align: -3px; }
+.fund-cartel { display: flex; align-items: center; gap: 12px; margin: 14px 0; padding: 14px; border-radius: 18px; background: linear-gradient(120deg, #FFF1CF, #FFE09A); color: #4A3300; text-decoration: none; box-shadow: 0 6px 18px rgba(214,150,20,.18); }
+.fund-cartel-ico { flex: 0 0 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--tinta); color: #FFD27A; }
+.fund-cartel-ico svg { width: 24px; height: 24px; }
+.fund-cartel-txt { flex: 1; display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 1.3; }
+.fund-cartel-txt strong { font-size: 15px; color: var(--tinta); }
+.fund-cele { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; }
+.fund-medalla { position: relative; width: 112px; height: 112px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, #FFF0C2, #FFC857 60%, #E0A526); box-shadow: 0 10px 30px rgba(214,150,20,.4); animation: medalla .7s cubic-bezier(.2,1.4,.4,1); }
+.fund-medalla svg { width: 58px; height: 58px; color: var(--tinta); }
+.fund-medalla span { position: absolute; bottom: -8px; background: var(--tinta); color: #FFD27A; font-weight: 800; font-size: 14px; padding: 3px 10px; border-radius: 999px; }
+.fund-cele h2 { margin: 8px 0 0; color: var(--tinta); font-size: 22px; }
+@keyframes medalla { from { transform: scale(.4) rotate(-20deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .fund-medalla { animation: none; } }
+
+/* ---------- Pantalla de descarga (?v) ---------- */
+.descarga { max-width: 440px; margin: 0 auto; padding: 28px 18px 40px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; }
+.descarga-ico { width: 104px; height: 104px; border-radius: 26px; box-shadow: 0 14px 34px rgba(29,63,175,.35); }
+.descarga h1 { margin: 6px 0 0; font-size: 28px; color: var(--tinta); }
+.descarga > p { margin: 0; }
+.descarga [data-fund-cartel], .descarga-accion { width: 100%; }
+.descarga .fund-cartel { text-align: left; margin: 6px 0; }
+.btn-grande { min-height: 58px; font-size: 18px; border-radius: 16px; }
+.descarga-paso { margin: 4px 0; }
+.descarga .pasos { text-align: left; }
+.descarga-datos { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 6px; color: var(--tinta); font-size: 14px; opacity: .8; }
+.descarga-datos li { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.descarga-datos .ico { width: 16px; height: 16px; color: #16A34A; }

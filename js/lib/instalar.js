@@ -4,8 +4,23 @@ import { hoja } from './dom.js';
 import { ico } from './iconos.js';
 
 let aviso = null;
-window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); aviso = e; });
-window.addEventListener('appinstalled', () => { aviso = null; marcar(true); });
+const esperando = new Set();
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); aviso = e; for (const f of esperando) f(); esperando.clear(); });
+window.addEventListener('appinstalled', () => { aviso = null; marcar(true); window.dispatchEvent(new Event('feria-instalada')); });
+
+// Para la pantalla de descarga: ¿el navegador ya ofrece instalar? Espera hasta `ms` a que lo ofrezca.
+export const puedeInstalar = () => !!aviso;
+export function esperarAviso(ms = 3500) {
+  if (aviso) return Promise.resolve(true);
+  return new Promise((ok) => { const f = () => ok(true); esperando.add(f); setTimeout(() => { esperando.delete(f); ok(!!aviso); }, ms); });
+}
+// Abre el cartel nativo de instalación (necesita el toque de la persona). Devuelve 'accepted' | 'dismissed' | ''.
+export async function instalarYa() {
+  const a = aviso; if (!a) return '';
+  aviso = null; a.prompt();
+  const r = await a.userChoice.catch(() => ({ outcome: '' }));
+  return r.outcome || '';
+}
 
 export const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const abiertaComoApp = () => ['standalone', 'fullscreen', 'minimal-ui'].some((m) => matchMedia(`(display-mode: ${m})`).matches)

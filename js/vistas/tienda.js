@@ -1,6 +1,7 @@
 // Página pública de una tienda: portada, perfil, datos de contacto y catálogo.
 import { esc, srcSeguro, waLink } from '../lib/util.js';
 import { protegerWhatsApp } from '../lib/acceso.js';
+import { insignia } from '../lib/fundadores.js';
 import { ico } from '../lib/iconos.js';
 import { toast } from '../lib/dom.js';
 import { avatar, grilla, vacio } from './componentes.js';
@@ -22,6 +23,7 @@ export async function vista(root, r, ctx) {
     <div class="tienda-cab">
       ${avatar(t, 'avatar-xl')}
       <h1>${esc(t.nombre)}</h1>
+      ${insignia(t.uid)}
       ${lugar ? `<p class="txt-sec">${ico('ubicacion')} ${esc(lugar)}</p>` : ''}
       ${t.descripcion ? `<p class="tienda-desc">${esc(t.descripcion)}</p>` : ''}
       ${t.origen === 'gestion' ? `<span class="chip-tipo">${ico('check')} Tienda Pekerón</span>` : ''}

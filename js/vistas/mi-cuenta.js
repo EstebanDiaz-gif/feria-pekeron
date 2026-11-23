@@ -1,5 +1,6 @@
 // Mi cuenta, como en MercadoLibre: una sola cuenta para comprar y vender.
 // Compras: consultados, favoritos y vistos. Ventas: el panel del vendedor.
+import { insignia, cartelCupo } from '../lib/fundadores.js';
 import { esc } from '../lib/util.js';
 import { ico } from '../lib/iconos.js';
 import { linkGestion } from '../config.js';
@@ -13,7 +14,7 @@ export async function vista(root, _r, ctx) {
   root.innerHTML = `
   <div class="cuenta-cab">
     <span class="avatar" aria-hidden="true">${esc(((u && u.nombre) || 'F').charAt(0).toUpperCase())}</span>
-    <div>${u ? `<h1>Hola, ${esc(u.nombre.split(' ')[0] || 'vecino')}</h1><p>${u.tipo === 'comercio' ? 'Comerciante' : 'Particular'}${u.localidad ? ' · ' + esc(u.localidad) : ''}</p>`
+    <div>${u ? `<h1>Hola, ${esc(u.nombre.split(' ')[0] || 'vecino')}</h1>${insignia(u.uid)}<p>${u.tipo === 'comercio' ? 'Comerciante' : 'Particular'}${u.localidad ? ' · ' + esc(u.localidad) : ''}</p>`
       : '<h1>Mi cuenta</h1><p>Ingresá para vender y tener tus favoritos en todos tus dispositivos.</p>'}</div>
   </div>
 

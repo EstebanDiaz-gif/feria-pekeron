@@ -6,6 +6,7 @@ import { CATEGORIAS } from '../datos/catalogo.js';
 import { linkGestion, banners } from '../config.js';
 import { grilla, seccion, vacio, avatar } from './componentes.js';
 import { fijarBusqueda } from './buscar.js';
+import * as Fund from '../lib/fundadores.js';
 
 const ACCESOS = [
   { t: 'Categorías', i: 'grilla', bg: '#E6F0FF', fg: '#1D4ED8', h: '#categorias' },
@@ -28,6 +29,9 @@ export async function vista(root, _r, ctx) {
     d.listar({ limite: 12 }),
     d.listarTiendas(),
   ]);
+  // Productos de Vendedores Fundadores (sección destacada).
+  const deFundadores = Fund.uids().size
+    ? (await d.listar({})).filter((p) => Fund.esFundador(p.uid)).slice(0, 8) : [];
   const lugar = zona.localidad || zona.provincia;
 
   root.innerHTML = `
@@ -58,6 +62,8 @@ export async function vista(root, _r, ctx) {
     <span class="btn btn-amarillo btn-chico">Descargar</span>
   </button>
 
+  ${ctx.usuario && Fund.esFundador(ctx.usuario.uid) ? '' : Fund.cartelCupo()}
+  ${deFundadores.length ? seccion("⭐ De Vendedores Fundadores", grilla(deFundadores)) : ''}
   ${destacadas.length ? seccion('Destacados', grilla(destacadas)) : ''}
 
   ${lugar && cerca.length ? seccion(`Cerca tuyo · ${lugar}`, grilla(cerca), '<button class="link-btn" data-accion="cerca">Ver todo</button>') : ''}

@@ -4,6 +4,8 @@ import { esc, waNumero } from '../lib/util.js';
 import { ico } from '../lib/iconos.js';
 import { toast, cargandoBtn } from '../lib/dom.js';
 import { camposUbicacion, enlazarUbicacion } from './zona.js';
+import { lugarCartel } from './componentes.js';
+import { cartelCupo } from '../lib/fundadores.js';
 
 const avisoLocal = `<div class="nota nota-aviso">${ico('info')}<span><b>Modo prueba, sin cuentas reales.</b> Todavía no está conectado el servidor,
   así que no se pide correo ni contraseña: el perfil se guarda solo en este navegador para que puedas recorrer la app.</span></div>`;
@@ -70,6 +72,7 @@ function registro(root, ctx) {
   root.innerHTML = `<div class="form-vista">
     <h1>${local ? 'Crear perfil de prueba' : 'Crear cuenta'}</h1>
     ${local ? avisoLocal : '<p class="txt-sec">Es gratis. Publicar no tiene costo ni comisiones.</p>'}
+    <div data-fund-cartel></div>
     <form class="form" data-f novalidate>
       <fieldset class="tipo-usuario"><legend>¿Cómo vas a usar la Feria?</legend>
         <label class="opcion-tipo"><input type="radio" name="tipo" value="particular" checked>
@@ -89,6 +92,7 @@ function registro(root, ctx) {
     <p class="centro">¿Ya ${local ? 'creaste un perfil' : 'tenés cuenta'}? <a href="#ingresar">Ingresar</a></p>
   </div>`;
   enlazarUbicacion(root);
+  lugarCartel(root, () => cartelCupo({ link: '' }));
   const f = root.querySelector('[data-f]'), err = root.querySelector('[data-err]');
   const lbl = root.querySelector('[data-lbl-nombre]');
   f.querySelectorAll('[name=tipo]').forEach((x) => x.onchange = () => { lbl.textContent = f.tipo.value === 'comercio' ? 'Nombre del negocio' : 'Tu nombre'; });

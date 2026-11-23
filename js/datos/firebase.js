@@ -224,3 +224,30 @@ export const consultados = seguro(async () => {
   const s = await F.getDocs(F.collection(db, 'usuarios', actual.uid, 'consultados'));
   return s.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => b.at - a.at);
 });
+
+// ---------- Vendedores Fundadores (los primeros N que se registran) ----------
+// fundadores/{uid} = { n, at } y contadores/fundadores = { n }. Se crean juntos en una transacción y las reglas
+// exigen que el número sea el siguiente del contador y no pase del cupo: nadie puede saltearse la fila ni
+// ponerse la insignia a mano.
+export const fundadores = seguro(async () => {
+  const s = await F.getDocs(F.collection(db, 'fundadores'));
+  const m = new Map(); for (const d of s.docs) m.set(d.id, d.data().n); return m;
+});
+export const cupoFundadores = seguro(async () => {
+  const s = await F.getDoc(F.doc(db, 'contadores', 'fundadores'));
+  return s.exists() ? (s.data().n || 0) : 0;
+});
+export const reclamarFundador = seguro(async (cupo) => {
+  if (!actual) return null;
+  const refC = F.doc(db, 'contadores', 'fundadores'); const refU = F.doc(db, 'fundadores', actual.uid);
+  return F.runTransaction(db, async (tx) => {
+    const [c, u] = await Promise.all([tx.get(refC), tx.get(refU)]);
+    if (u.exists()) return u.data().n;
+    const usados = c.exists() ? (c.data().n || 0) : 0;
+    if (usados >= cupo) return null;
+    const n = usados + 1;
+    tx.set(refU, { n, at: F.serverTimestamp() });
+    tx.set(refC, { n });
+    return n;
+  });
+});

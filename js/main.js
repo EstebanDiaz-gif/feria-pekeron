@@ -9,6 +9,7 @@ import { abrirInstalar, revisarInstalacion } from './lib/instalar.js';
 import { elegirZona } from './vistas/zona.js';
 import { fijarBusqueda } from './vistas/buscar.js';
 import { mostrarAnuncio } from './lib/anuncio.js';
+import * as Fund from './lib/fundadores.js';
 
 const RUTAS = {
   inicio: () => import('./vistas/inicio.js'),
@@ -21,6 +22,7 @@ const RUTAS = {
   tienda: () => import('./vistas/tienda.js'),
   ingresar: () => import('./vistas/cuenta.js'),
   registrarse: () => import('./vistas/cuenta.js'),
+  descargar: () => import('./vistas/descargar.js'),
   cuenta: () => import('./vistas/mi-cuenta.js'),
   consultados: () => import('./vistas/compras.js'),
   favoritos: () => import('./vistas/compras.js'),
@@ -161,19 +163,27 @@ async function arrancar() {
   avisoModo();
   pintarCabecera();
   revisarInstalacion();
-  ctx.d.auth.alCambiar(() => { pintarCabecera(); ctx.actualizarCampana(ctx.campana); ctx.contarNotificaciones(); });
+  ctx.d.auth.alCambiar(() => { Fund.reclamar(ctx); pintarCabecera(); ctx.actualizarCampana(ctx.campana); ctx.contarNotificaciones(); });
   window.addEventListener('hashchange', mostrar);
   document.addEventListener('click', (e) => { if (e.target.closest('[data-instalar]') && !e.target.closest('#top')) abrirInstalar(); });
   mostrar();
+  // Vendedores Fundadores: se cargan aparte (no frenan la primera pantalla); si hay alguno, se repinta
+  // la pantalla actual para que aparezcan las insignias.
+  Fund.cargar(ctx.d).then((m) => {
+    const { nombre } = leerRuta();
+    if (m.size && ['inicio', 'buscar', 'categoria', 'producto', 'tienda'].includes(nombre)) mostrar();
+    window.dispatchEvent(new Event('fundadores'));
+    Fund.reclamar(ctx);
+  });
   // Viene del QR de "Descargá la app" (feria.pekeronapp.com/?app): se ofrece instalar en vez del anuncio.
-  // ?v = QR de la campaña para vendedores: además abre el registro.
   const qs = new URLSearchParams(location.search);
   const desdeQR = qs.has('app') || qs.has('v');
   if (desdeQR) {
-    const destino = qs.has('v') && !location.hash ? '#registrarse' : location.hash;
+    // ?v (campaña de vendedores) abre la pantalla de descarga; ?app, el cartel de instalar sobre el inicio.
+    const destino = qs.has('v') && !location.hash ? '#descargar' : location.hash;
     history.replaceState(null, '', location.pathname + destino);
     if (qs.has('v')) window.dispatchEvent(new HashChangeEvent('hashchange'));
-    setTimeout(() => { if (!document.body.classList.contains('app-instalada')) abrirInstalar(); }, 1500);
+    else setTimeout(() => { if (!document.body.classList.contains('app-instalada')) abrirInstalar(); }, 1500);
   } else setTimeout(() => mostrarAnuncio(ctx), 900);
   setTimeout(() => ctx.contarNotificaciones(), 2500);
   setInterval(() => { if (!document.hidden) ctx.contarNotificaciones(); }, 5 * 60000);

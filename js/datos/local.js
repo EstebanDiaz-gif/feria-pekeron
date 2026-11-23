@@ -218,3 +218,19 @@ export async function ponerFavorito(p, si) {
   if (si) L.poner('favoritos.' + actual.uid, p); else L.quitar('favoritos.' + actual.uid, p.id);
 }
 export async function consultados() { return actual ? L.lista('consultados.' + actual.uid) : []; }
+
+// ---------- Vendedores Fundadores (modo prueba: en este navegador) ----------
+const FUND = 'feria.fundadores';
+const leerFund = () => { try { return JSON.parse(localStorage.getItem(FUND) || '{}'); } catch { return {}; } };
+export async function fundadores() { return new Map(Object.entries(leerFund())); }
+export async function cupoFundadores() { return Object.keys(leerFund()).length; }
+export async function reclamarFundador(cupo) {
+  if (!actual) return null;
+  const f = leerFund();
+  if (f[actual.uid]) return f[actual.uid];
+  const n = Object.keys(f).length + 1;
+  if (n > cupo) return null;
+  f[actual.uid] = n;
+  try { localStorage.setItem(FUND, JSON.stringify(f)); } catch { /* sin almacenamiento */ }
+  return n;
+}

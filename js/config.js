@@ -42,3 +42,6 @@ export const anuncios = [
   { id: 'lanzamiento-2026', fecha: '2026-11-22', etiqueta: 'Lanzamiento', titulo: '¡Llegó Feria Pekerón!', texto: 'El marketplace de Tucumán: publicá gratis, sin comisiones, y hablá directo con quien compra por WhatsApp.', boton: 'Publicar gratis', link: '#publicar', secundario: 'Explorar la Feria', tema: 'azul', icono: 'bolsa' },
   { id: 'gestion-2026', fecha: '2026-11-22', etiqueta: 'Pekerón Gestión', titulo: 'Tu negocio, ordenado desde el celular', texto: 'Stock, ventas, fiado y caja en una sola app. Y tus productos aparecen solos en la Feria.', boton: 'Conocer Pekerón Gestión', link: 'https://pekeronapp.com', secundario: 'Ahora no', tema: 'tinta', icono: 'panel' },
 ];
+
+// Vendedores Fundadores: los primeros `cupo` que se registran tienen insignia y una sección destacada en el inicio.
+export const fundadores = { cupo: 100 };

@@ -2,16 +2,16 @@
 // Los datos (publicaciones, tiendas) siempre se piden al servidor.
 // Al cambiar archivos de la app, subir la versión de C.
 // Vive en su propio dominio: no comparte caché con Pekerón Gestión.
-const C = 'feria-v8';
+const C = 'feria-v9';
 const F = [
   './', './index.html', './manifest.webmanifest', './css/feria.css',
   './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png',
   './js/main.js', './js/config.js',
-  './js/lib/util.js', './js/lib/dom.js', './js/lib/iconos.js', './js/lib/fotos.js', './js/lib/instalar.js', './js/lib/anuncio.js', './js/lib/acceso.js', './js/lib/ilustraciones.js',
+  './js/lib/util.js', './js/lib/dom.js', './js/lib/iconos.js', './js/lib/fotos.js', './js/lib/instalar.js', './js/lib/anuncio.js', './js/lib/acceso.js', './js/lib/fundadores.js', './js/lib/ilustraciones.js',
   './js/datos/index.js', './js/datos/gestion.js', './js/datos/filtro.js', './js/datos/notificaciones.js', './js/datos/guardado-local.js', './js/datos/local.js', './js/datos/firebase.js', './js/datos/catalogo.js',
   './js/vistas/componentes.js', './js/vistas/zona.js', './js/vistas/inicio.js', './js/vistas/categorias.js', './js/vistas/notificaciones.js', './js/vistas/buscar.js',
   './js/vistas/producto.js', './js/vistas/tiendas.js', './js/vistas/tienda.js', './js/vistas/cuenta.js',
-  './js/vistas/panel.js', './js/vistas/publicar.js', './js/vistas/mi-tienda.js', './js/vistas/perfil.js', './js/vistas/mi-cuenta.js', './js/vistas/compras.js',
+  './js/vistas/panel.js', './js/vistas/publicar.js', './js/vistas/mi-tienda.js', './js/vistas/perfil.js', './js/vistas/mi-cuenta.js', './js/vistas/compras.js', './js/vistas/descargar.js',
 ];
 
 self.addEventListener('install', (e) => {

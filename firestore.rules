@@ -55,6 +55,34 @@ service cloud.firestore {
       allow delete: if logueado() && resource.data.uid == request.auth.uid;
     }
 
+    // Vendedores Fundadores: los primeros 100 que se registran. Cada uno toma el número siguiente del contador
+    // en la misma escritura (transacción): no se puede saltear la fila, repetir número ni pasar el cupo.
+    match /fundadores/{uid} {
+      allow read: if true;
+      allow create: if esDueno(uid)
+        && request.resource.data.keys().hasOnly(['n', 'at'])
+        && request.resource.data.n is int
+        && request.resource.data.n >= 1 && request.resource.data.n <= 100
+        && request.resource.data.at == request.time
+        && getAfter(/databases/$(database)/documents/contadores/fundadores).data.n == request.resource.data.n
+        && (exists(/databases/$(database)/documents/contadores/fundadores)
+              ? get(/databases/$(database)/documents/contadores/fundadores).data.n + 1 == request.resource.data.n
+              : request.resource.data.n == 1);
+      allow update, delete: if false;
+    }
+    match /contadores/{c} {
+      allow read: if true;
+      // Solo sube de a uno, y solo junto con el alta de quien toma ese número.
+      allow create, update: if logueado() && c == 'fundadores'
+        && request.resource.data.keys().hasOnly(['n'])
+        && request.resource.data.n is int && request.resource.data.n <= 100
+        && request.resource.data.n == (resource == null ? 0 : resource.data.n) + 1
+        && !exists(/databases/$(database)/documents/fundadores/$(request.auth.uid))
+        && existsAfter(/databases/$(database)/documents/fundadores/$(request.auth.uid))
+        && getAfter(/databases/$(database)/documents/fundadores/$(request.auth.uid)).data.n == request.resource.data.n;
+      allow delete: if false;
+    }
+
     // Consultas: cada vez que alguien toca "Consultar por WhatsApp" queda un registro (sin datos del comprador
     // salvo su uid si está logueado). Solo el vendedor de esa publicación las ve; sirven para el aviso
     // "¿Ya lo vendiste?". Nadie las puede editar.

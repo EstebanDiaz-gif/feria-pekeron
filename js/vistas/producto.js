@@ -1,6 +1,7 @@
 // Detalle de una publicación: fotos, precio, descripción, vendedor, ubicación y WhatsApp.
 import { esc, srcSeguro, fmtPrecio, waLink } from '../lib/util.js';
 import { protegerWhatsApp } from '../lib/acceso.js';
+import { insignia } from '../lib/fundadores.js';
 import { ico } from '../lib/iconos.js';
 import { toast } from '../lib/dom.js';
 import { categoria, ESTADOS } from '../datos/catalogo.js';
@@ -62,7 +63,7 @@ export async function vista(root, r, ctx) {
 
       <div class="vendedor">
         ${avatar(t || { nombre: p.vendedorNombre })}
-        <div class="vendedor-txt"><strong>${esc(t ? t.nombre : p.vendedorNombre)}</strong>
+        <div class="vendedor-txt"><strong>${esc(t ? t.nombre : p.vendedorNombre)}</strong>${insignia(p.uid)}
           <span class="txt-sec">${t ? (t.origen === 'gestion' ? 'Tienda Pekerón' : 'Tienda en la Feria') : 'Vendedor particular'}${t && t.localidad ? ' · ' + esc(t.localidad) : ''}</span></div>
         ${t ? `<a class="btn btn-sec btn-chico" href="#tienda-${esc(t.slug)}">Ver tienda</a>` : ''}
       </div>
