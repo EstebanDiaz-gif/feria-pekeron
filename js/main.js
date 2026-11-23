@@ -166,9 +166,13 @@ async function arrancar() {
   document.addEventListener('click', (e) => { if (e.target.closest('[data-instalar]') && !e.target.closest('#top')) abrirInstalar(); });
   mostrar();
   // Viene del QR de "Descargá la app" (feria.pekeronapp.com/?app): se ofrece instalar en vez del anuncio.
-  const desdeQR = new URLSearchParams(location.search).has('app');
+  // ?v = QR de la campaña para vendedores: además abre el registro.
+  const qs = new URLSearchParams(location.search);
+  const desdeQR = qs.has('app') || qs.has('v');
   if (desdeQR) {
-    history.replaceState(null, '', location.pathname + location.hash);
+    const destino = qs.has('v') && !location.hash ? '#registrarse' : location.hash;
+    history.replaceState(null, '', location.pathname + destino);
+    if (qs.has('v')) window.dispatchEvent(new HashChangeEvent('hashchange'));
     setTimeout(() => { if (!document.body.classList.contains('app-instalada')) abrirInstalar(); }, 1500);
   } else setTimeout(() => mostrarAnuncio(ctx), 900);
   setTimeout(() => ctx.contarNotificaciones(), 2500);
