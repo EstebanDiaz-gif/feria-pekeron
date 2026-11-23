@@ -800,3 +800,7 @@ body.app-instalada [data-instalar] { display: none !important; }
 .vend-lugar .ico { width: 14px; height: 14px; }
 .barra-accion .btn-wa { min-height: 54px; font-size: 17px; border-radius: 16px; box-shadow: 0 8px 20px rgba(37,211,102,.3); }
 .vendedor-txt .fundador, .cuenta-cab .fundador { align-self: flex-start; }
+.descarga-logo { margin: 0; line-height: 0; }
+.descarga-logo img { width: min(300px, 78vw); height: auto; filter: drop-shadow(0 10px 18px rgba(16,36,104,.18)); }
+.marca img { box-shadow: none; border-radius: 0; }
+.marca-nombre { font-weight: 800; font-stretch: 100%; letter-spacing: -.2px; }

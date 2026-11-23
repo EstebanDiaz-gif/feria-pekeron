@@ -10,8 +10,7 @@ import { cartelCupo } from '../lib/fundadores.js';
 export async function vista(root, _r, ctx) {
   const ios = esIOS();
   root.innerHTML = `<div class="descarga">
-    <img class="descarga-ico" src="icons/icon-512.png" alt="" width="104" height="104">
-    <h1>Feria Pekerón</h1>
+    <h1 class="descarga-logo"><img src="icons/logo-principal.png" alt="Feria Pekerón" width="300" height="241"></h1>
     <p class="txt-sec">Comprá y vendé en tu barrio. Gratis y sin comisiones.</p>
     <div data-fund-cartel></div>
     <div class="descarga-accion" data-accion></div>

@@ -84,7 +84,7 @@ function pintarCabecera() {
   const lugar = esc(ctx.zona.localidad || ctx.zona.provincia || 'Todo el país');
   $('#top').innerHTML = `<div class="top-in">
     <div class="top-fila">
-      <a class="marca" href="#inicio" aria-label="Feria Pekerón, inicio"><img src="icons/icon.svg" alt="" width="38" height="38"></a>
+      <a class="marca" href="#inicio" aria-label="Feria Pekerón, inicio"><img src="icons/icon-192.png" alt="" width="38" height="38"></a>
       <a class="marca-nombre" href="#inicio" aria-hidden="true" tabindex="-1"><span>Feria</span> <b>Pekerón</b></a>
       <nav class="top-links" aria-label="Secciones">
         <a href="#categorias">Categorías</a><a href="#tiendas">Tiendas</a><a href="#publicar">Vender</a><a href="#cuenta">Mi cuenta</a>
