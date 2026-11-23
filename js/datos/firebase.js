@@ -34,7 +34,10 @@ export async function iniciar(config) {
 
 async function perfilDe(uid) {
   const s = await F.getDoc(F.doc(db, 'usuarios', uid));
-  return s.exists() ? { uid, ...s.data() } : { uid, nombre: '', tipo: 'particular', incompleto: true };
+  if (s.exists()) return { uid, ...s.data() };
+  // Cuenta sin perfil (por ejemplo, recién entró con Google): falta elegir tipo, WhatsApp y zona.
+  const u = auth0 && auth0.currentUser;
+  return { uid, nombre: (u && u.displayName) || '', tipo: 'particular', incompleto: true };
 }
 
 const msg = (e) => {
@@ -43,6 +46,10 @@ const msg = (e) => {
   if (c.includes('invalid-email')) return 'El correo no es válido.';
   if (c.includes('weak-password')) return 'La contraseña tiene que tener al menos 6 caracteres.';
   if (c.includes('invalid-credential') || c.includes('wrong-password') || c.includes('user-not-found')) return 'Correo o contraseña incorrectos.';
+  if (c.includes('popup-closed-by-user') || c.includes('cancelled-popup-request')) return 'Se cerró la ventana de Google antes de terminar.';
+  if (c.includes('unauthorized-domain')) return 'Falta autorizar este dominio para entrar con Google (Firebase → Authentication → Configuración).';
+  if (c.includes('operation-not-allowed')) return 'El ingreso con Google todavía no está activado.';
+  if (c.includes('account-exists-with-different-credential')) return 'Ya tenés cuenta con ese correo: ingresá con tu contraseña.';
   if (c.includes('too-many-requests')) return 'Demasiados intentos. Esperá unos minutos.';
   if (c.includes('permission-denied')) return 'No tenés permiso para hacer eso.';
   if (c.includes('unavailable') || c.includes('network')) return 'Sin conexión. Probá de nuevo.';
@@ -66,6 +73,19 @@ export const auth = {
   }),
   ingresar: seguro(async ({ email, clave }) => {
     const c = await A.signInWithEmailAndPassword(auth0, email.trim(), clave);
+    actual = await perfilDe(c.user.uid); avisar();
+    return actual;
+  }),
+  // Entrar con Google (ventana emergente; si el navegador la bloquea, redirige y vuelve).
+  conGoogle: seguro(async () => {
+    const prov = new A.GoogleAuthProvider();
+    prov.setCustomParameters({ prompt: 'select_account' });
+    let c;
+    try { c = await A.signInWithPopup(auth0, prov); }
+    catch (e) {
+      if (/popup-blocked|operation-not-supported-in-this-environment/.test((e && e.code) || '')) { await A.signInWithRedirect(auth0, prov); return null; }
+      throw e;
+    }
     actual = await perfilDe(c.user.uid); avisar();
     return actual;
   }),

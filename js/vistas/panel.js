@@ -23,18 +23,20 @@ export async function vista(root, r, ctx) {
   if (r.nombre === 'mis-productos') return lista(root, ctx, mias, n);
   const preguntar = mias.filter((p) => p.disponibilidad === 'disponible' && p._nuevas > 0).sort((a, b) => b._nuevas - a._nuevas);
 
+  const totalConsultas = Object.values(rec).reduce((a, c) => a + (c.total || 0), 0);
   root.innerHTML = `
-  <div class="panel-cab">
-    <div><p class="txt-sec">Panel del vendedor</p><h1>Hola, ${esc(u.nombre.split(' ')[0])}</h1>
-    <span class="chip-tipo">${u.tipo === 'comercio' ? ico('tienda') + ' Comerciante' : ico('usuario') + ' Particular'}</span></div>
+  <div class="panel-cab2">
+    <h1>Mi Panel</h1>
+    <p class="txt-sec">Gestioná tus productos y tu tienda.</p>
   </div>
   ${ctx.d.modo === 'local' ? `<div class="nota nota-aviso">${ico('info')}<span>Perfil de prueba: lo que cargues queda solo en este navegador.</span></div>` : ''}
 
-  <div class="resumen">
-    <a class="resumen-item" href="#mis-productos" data-f="disponible"><strong>${n.disponible}</strong><span>Activas</span></a>
-    <a class="resumen-item" href="#mis-productos" data-f="pausada"><strong>${n.pausada}</strong><span>Pausadas</span></a>
-    <a class="resumen-item" href="#mis-productos" data-f="vendida"><strong>${n.vendida}</strong><span>Vendidas</span></a>
+  <div class="stats">
+    <a class="stat" href="#mis-productos" data-f="disponible"><span class="stat-ico st-az">${ico('caja')}</span><strong>${mias.length}</strong><span>${mias.length === 1 ? 'Producto' : 'Productos'}</span></a>
+    <a class="stat" href="#mi-tienda"><span class="stat-ico st-am">${ico('tienda')}</span><strong>${t ? 1 : 0}</strong><span>Tienda</span></a>
+    <a class="stat" href="#notificaciones"><span class="stat-ico st-ce">${ico('chat')}</span><strong>${totalConsultas}</strong><span>Consultas</span></a>
   </div>
+  <p class="stats-sub">${n.disponible} activas · ${n.pausada} pausadas · ${n.vendida} vendidas</p>
 
   ${preguntar.length ? `<section class="vendiste" aria-label="Consultas recibidas">
     ${preguntar.map((p) => `<div class="vendiste-item">
@@ -50,14 +52,15 @@ export async function vista(root, r, ctx) {
       </div></div>`).join('')}
   </section>` : ''}
 
-  <a class="btn btn-pri ancho btn-grande" href="#publicar">${ico('mas')} Crear publicación</a>
+  <a class="btn btn-amarillo ancho btn-grande" href="#publicar">${ico('mas')} Crear publicación</a>
 
-  <div class="menu-lista">
-    <a href="#mis-productos" data-f="disponible">${ico('caja')}<span><strong>Mis productos</strong><small>${mias.length} en total · editar, pausar o marcar vendido</small></span>${ico('derecha', 'chev')}</a>
-    <a href="#mi-tienda">${ico('tienda')}<span><strong>Mi tienda</strong><small>${t ? esc(t.nombre) + ' · portada, logo y WhatsApp' : 'Todavía no la creaste'}</small></span>${ico('derecha', 'chev')}</a>
-    ${t ? `<a href="#tienda-${esc(t.slug)}">${ico('compartir')}<span><strong>Ver mi tienda como cliente</strong><small>Lo que ven los compradores</small></span>${ico('derecha', 'chev')}</a>` : ''}
-    <a href="#perfil">${ico('usuario')}<span><strong>Configuración del perfil</strong><small>Nombre, WhatsApp y ubicación</small></span>${ico('derecha', 'chev')}</a>
-    <button data-salir>${ico('salir')}<span><strong>Salir</strong><small>${ctx.d.modo === 'local' ? 'El perfil de prueba queda guardado en este navegador' : 'Cerrar sesión en este dispositivo'}</small></span></button>
+  <div class="menu-lista menu-panel">
+    <a href="#mis-productos" data-f="disponible"><span class="mp-ico">${ico('caja')}</span><span><strong>Mis productos</strong><small>Ver, editar y gestionar</small></span>${ico('derecha', 'chev')}</a>
+    <a href="#mi-tienda"><span class="mp-ico">${ico('tienda')}</span><span><strong>Mi tienda</strong><small>${t ? esc(t.nombre) + ' · personalizá tu tienda' : 'Todavía no la creaste'}</small></span>${ico('derecha', 'chev')}</a>
+    ${t ? `<a href="#tienda-${esc(t.slug)}"><span class="mp-ico">${ico('compartir')}</span><span><strong>Ver mi tienda como cliente</strong><small>Lo que ven los compradores</small></span>${ico('derecha', 'chev')}</a>` : ''}
+    <a href="#notificaciones"><span class="mp-ico">${ico('chat')}</span><span><strong>Consultas y favoritos</strong><small>Quién te consultó y productos guardados</small></span>${ico('derecha', 'chev')}</a>
+    <a href="#perfil"><span class="mp-ico">${ico('usuario')}</span><span><strong>Perfil</strong><small>Nombre, WhatsApp y ubicación</small></span>${ico('derecha', 'chev')}</a>
+    <button data-salir><span class="mp-ico">${ico('salir')}</span><span><strong>Salir</strong><small>${ctx.d.modo === 'local' ? 'El perfil de prueba queda guardado en este navegador' : 'Cerrar sesión en este dispositivo'}</small></span></button>
   </div>
 
   ${u.tipo === 'comercio' ? `<a class="gestion-card" href="${esc(linkGestion)}" rel="noopener">

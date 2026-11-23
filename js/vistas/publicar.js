@@ -10,6 +10,7 @@ import { camposUbicacion, enlazarUbicacion } from './zona.js';
 const RAPIDOS = { talles: ['XS', 'S', 'M', 'L', 'XL', 'XXL', '36', '37', '38', '39', '40', '41', '42', '43'], colores: ['Negro', 'Blanco', 'Gris', 'Azul', 'Rojo', 'Verde', 'Beige', 'Rosa'] };
 // Firestore guarda hasta 1 MB por documento: mientras las fotos vayan adentro, se limita el total.
 const MAX_KB_FIREBASE = 820;
+const PASOS = ['Producto', 'Fotos', 'Detalles', 'Resumen'];
 
 export async function vista(root, r, ctx) {
   const u = ctx.usuario;
@@ -25,15 +26,12 @@ export async function vista(root, r, ctx) {
   root.innerHTML = `
   <div class="barra-vista"><a class="btn-ico" href="${p ? '#mis-productos' : '#panel'}" aria-label="Volver">${ico('atras')}</a><h1>${p ? 'Editar publicación' : 'Crear publicación'}</h1></div>
   ${sinWa ? `<div class="nota nota-aviso">${ico('info')}<span>No cargaste tu WhatsApp: los compradores no van a poder escribirte. <a href="#perfil">Cargalo en tu perfil</a>.</span></div>` : ''}
+  <ol class="pasos-pub" data-pasos>
+    ${PASOS.map((n, i) => `<li data-ir-paso="${i + 1}"><span class="pp-num">${i + 1}</span><span>${n}</span></li>`).join('')}
+  </ol>
   <form class="form form-publicar" data-f novalidate>
-    <section class="bloque">
-      <h2>Fotos <span class="opc">hasta ${CFG.max} · la primera es la principal</span></h2>
-      <div class="fotos-edit" data-fotos></div>
-      <p class="ayuda" data-peso></p>
-    </section>
-
-    <section class="bloque">
-      <h2>Producto</h2>
+    <section class="bloque paso" data-paso="1">
+      <h2>Información del producto</h2>
       <div class="campo"><label for="p-tit">Nombre del producto</label>
         <input id="p-tit" name="titulo" required maxlength="80" value="${esc(v.titulo || '')}" placeholder="Ej.: Zapatillas urbanas blancas">
         <small class="ayuda">Marca, modelo y lo más importante. <span data-cuenta>0</span>/80</small></div>
@@ -43,22 +41,32 @@ export async function vista(root, r, ctx) {
           ${CATEGORIAS.map((c) => `<option value="${c.id}" ${v.categoria === c.id ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('')}</select></div>
         <div class="campo"><label for="p-sub">Subcategoría</label><select id="p-sub" name="subcategoria" required></select></div>
       </div>
-      <fieldset class="segmento"><legend>Estado</legend>
-        <label><input type="radio" name="estado" value="nuevo" ${v.estado !== 'usado' ? 'checked' : ''}><span>Nuevo</span></label>
-        <label><input type="radio" name="estado" value="usado" ${v.estado === 'usado' ? 'checked' : ''}><span>Usado</span></label>
-      </fieldset>
+      <div class="campo"><label for="p-desc">Descripción</label>
+        <textarea id="p-desc" name="descripcion" rows="5" maxlength="2000" placeholder="Contá cómo es, medidas, detalles, si hacés envíos…">${esc(v.descripcion || '')}</textarea></div>
       <div class="dos-col">
         <div class="campo"><label for="p-precio">Precio</label>
           <div class="con-prefijo"><span>$</span><input id="p-precio" name="precio" inputmode="numeric" required value="${v.precio ? esc(v.precio) : ''}" placeholder="0"></div></div>
         <div class="campo"><label for="p-stock">Cantidad <span class="opc">(opcional)</span></label>
           <input id="p-stock" name="stock" type="number" min="1" max="9999" inputmode="numeric" value="${v.stock ? esc(v.stock) : ''}" placeholder="—"></div>
       </div>
-      <div class="campo"><label for="p-desc">Descripción</label>
-        <textarea id="p-desc" name="descripcion" rows="5" maxlength="2000" placeholder="Contá cómo es, medidas, detalles, si hacés envíos…">${esc(v.descripcion || '')}</textarea></div>
     </section>
 
+    <section class="bloque paso" data-paso="2" hidden>
+      <h2>Fotos <span class="opc">hasta ${CFG.max} · la primera es la principal</span></h2>
+      <div class="fotos-edit" data-fotos></div>
+      <p class="ayuda" data-peso></p>
+      <h2 class="h2-sep">Estado del producto</h2>
+      <fieldset class="segmento"><legend>Estado</legend>
+        <label><input type="radio" name="estado" value="nuevo" ${v.estado !== 'usado' ? 'checked' : ''}><span>Nuevo</span></label>
+        <label><input type="radio" name="estado" value="usado" ${v.estado === 'usado' ? 'checked' : ''}><span>Usado</span></label>
+      </fieldset>
+      <h2 class="h2-sep">Ubicación</h2>
+      ${camposUbicacion(v)}
+    </section>
+
+    <section class="paso" data-paso="3" hidden>
     <section class="bloque" data-variantes>
-      <h2>Variantes <span class="opc">(opcional)</span></h2>
+      <h2>Talles y colores <span class="opc">(opcional)</span></h2>
       <p class="ayuda">Si tenés el producto en varios talles o colores, cargalos acá.</p>
       ${['talles', 'colores'].map((k) => `<div class="campo">
         <label for="v-${k}">${k === 'talles' ? 'Talles' : 'Colores'}</label>
@@ -70,11 +78,6 @@ export async function vista(root, r, ctx) {
     </section>
 
     <section class="bloque">
-      <h2>Ubicación</h2>
-      ${camposUbicacion(v)}
-    </section>
-
-    <section class="bloque">
       <h2>Disponibilidad</h2>
       <fieldset class="segmento"><legend class="sr">Disponibilidad</legend>
         <label><input type="radio" name="disponibilidad" value="disponible" ${v.disponibilidad !== 'pausada' && v.disponibilidad !== 'vendida' ? 'checked' : ''}><span>Publicar ahora</span></label>
@@ -82,9 +85,18 @@ export async function vista(root, r, ctx) {
         ${p ? `<label><input type="radio" name="disponibilidad" value="vendida" ${v.disponibilidad === 'vendida' ? 'checked' : ''}><span>Vendida</span></label>` : ''}
       </fieldset>
     </section>
+    </section>
+
+    <section class="bloque paso" data-paso="4" hidden>
+      <h2>Resumen</h2>
+      <div class="resumen-pub" data-resumen></div>
+    </section>
 
     <p class="error" data-err role="alert"></p>
-    <div class="barra-accion barra-form"><button class="btn btn-pri ancho btn-grande" type="submit">${p ? 'Guardar cambios' : 'Publicar gratis'}</button></div>
+    <div class="barra-accion barra-form">
+      <button class="btn btn-sec" type="button" data-anterior hidden>${ico('atras')} Atrás</button>
+      <button class="btn btn-amarillo ancho btn-grande" type="submit" data-siguiente>Siguiente ${ico('derecha')}</button>
+    </div>
   </form>`;
 
   enlazarUbicacion(root);
@@ -148,9 +160,68 @@ export async function vista(root, r, ctx) {
   });
   root.querySelectorAll('[data-rapido]').forEach((b) => b.onclick = () => agregar(b.dataset.rapido, b.dataset.val));
 
+  // ---- Pasos: Producto → Fotos → Detalles → Resumen ----
+  let paso = 1, maxVisto = p ? 4 : 1;
+  const btnSig = root.querySelector('[data-siguiente]'), btnAnt = root.querySelector('[data-anterior]');
+  const leerPrecio = () => Number(String(f.precio.value || '').replace(/\./g, '').replace(',', '.'));
+  function irPaso(n) {
+    paso = Math.max(1, Math.min(4, n)); maxVisto = Math.max(maxVisto, paso); err.textContent = '';
+    root.querySelectorAll('[data-paso]').forEach((x) => { x.hidden = +x.dataset.paso !== paso; });
+    root.querySelectorAll('[data-ir-paso]').forEach((li) => {
+      const k = +li.dataset.irPaso;
+      li.classList.toggle('on', k === paso); li.classList.toggle('hecho', k < paso); li.classList.toggle('se-puede', k <= maxVisto && k !== paso);
+    });
+    btnAnt.hidden = paso === 1;
+    btnSig.innerHTML = paso < 4 ? `Siguiente ${ico('derecha')}` : (p ? 'Guardar cambios' : 'Publicar gratis');
+    btnSig.classList.toggle('btn-amarillo', paso < 4); btnSig.classList.toggle('btn-pri', paso === 4);
+    if (paso === 4) pintarResumen();
+    window.scrollTo(0, 0);
+  }
+  function validarPaso(n) {
+    if (n === 1) {
+      if (f.titulo.value.trim().length < 3) return ['Escribí el nombre del producto.', f.titulo];
+      if (!f.categoria.value) return ['Elegí una categoría.', selCat];
+      const pr = leerPrecio(); if (!Number.isFinite(pr) || pr <= 0) return ['Poné un precio mayor a cero.', f.precio];
+    }
+    if (n === 2) {
+      if (!String(f.localidad.value || '').trim()) return ['Elegí la localidad.', f.localidad];
+      if (ctx.d.modo === 'firebase' && st.fotos.reduce((x, y) => x + pesoKB(y), 0) > MAX_KB_FIREBASE) return ['Las fotos pesan demasiado: sacá alguna.', null];
+    }
+    return null;
+  }
+  function pintarResumen() {
+    const d = Object.fromEntries(new FormData(f)); const c = categoria(d.categoria);
+    const fila = (k, x) => (x ? `<div><dt>${k}</dt><dd>${esc(x)}</dd></div>` : '');
+    const dispTxt = { disponible: 'Se publica ahora', pausada: 'Queda pausada (no la ve nadie)', vendida: 'Vendida' }[d.disponibilidad] || '';
+    root.querySelector('[data-resumen]').innerHTML = `
+      <div class="rp-cab">${st.fotos[0] ? `<img src="${st.fotos[0]}" alt="">` : `<span class="rp-sin">${ico('foto')}</span>`}
+        <div><strong>${esc(d.titulo)}</strong><span class="rp-precio">$ ${leerPrecio().toLocaleString('es-AR')}</span>
+        <small>${st.fotos.length ? `${st.fotos.length} ${st.fotos.length === 1 ? 'foto' : 'fotos'}` : 'Sin fotos: se venden mucho más con fotos'}</small></div></div>
+      <dl class="datos">${fila('Categoría', c ? c.nombre + (d.subcategoria ? ' › ' + d.subcategoria : '') : '')}${fila('Estado', d.estado === 'usado' ? 'Usado' : 'Nuevo')}
+        ${fila('Ubicación', [d.barrio, d.localidad, d.provincia].filter(Boolean).join(', '))}${fila('Talles', st.talles.join(', '))}${fila('Colores', st.colores.join(', '))}
+        ${fila('Cantidad', d.stock)}${fila('Publicación', dispTxt)}</dl>
+      ${d.descripcion ? `<p class="rp-desc">${esc(String(d.descripcion).slice(0, 220))}${String(d.descripcion).length > 220 ? '…' : ''}</p>` : ''}
+      <p class="ayuda">${ico('info')} Publicar es gratis y sin comisiones. La podés editar cuando quieras.</p>`;
+  }
+  btnAnt.onclick = () => irPaso(paso - 1);
+  root.querySelectorAll('[data-ir-paso]').forEach((li) => li.onclick = () => {
+    const k = +li.dataset.irPaso; if (k > maxVisto || k === paso) return;
+    for (let n = 1; n < k; n++) { const m = validarPaso(n); if (m) { irPaso(n); err.textContent = m[0]; return; } }
+    irPaso(k);
+  });
+  const volver = root.querySelector('.barra-vista .btn-ico');
+  volver.addEventListener('click', (e) => { if (paso > 1) { e.preventDefault(); irPaso(paso - 1); } });
+  irPaso(1);
+
   // ---- Guardar ----
   f.onsubmit = async (e) => {
     e.preventDefault(); err.textContent = '';
+    if (paso < 4) {
+      const m = validarPaso(paso);
+      if (m) { err.textContent = m[0]; if (m[1]) m[1].focus(); return; }
+      irPaso(paso + 1); return;
+    }
+    for (const n of [1, 2]) { const m = validarPaso(n); if (m) { irPaso(n); err.textContent = m[0]; if (m[1]) m[1].focus(); return; } }
     const d = Object.fromEntries(new FormData(f));
     const precio = Number(String(d.precio || '').replace(/\./g, '').replace(',', '.'));
     const falta = (m, el) => { err.textContent = m; if (el) el.focus(); };
@@ -172,7 +243,7 @@ export async function vista(root, r, ctx) {
       disponibilidad: ['disponible', 'pausada', 'vendida'].includes(d.disponibilidad) ? d.disponibilidad : 'disponible',
     };
     if (!p) delete datos.id;
-    const b = f.querySelector('[type=submit]'); cargandoBtn(b, true, 'Guardando…');
+    const b = btnSig; cargandoBtn(b, true, p ? 'Guardando…' : 'Publicando…');
     try {
       const id = await ctx.d.guardarPublicacion(datos);
       toast(p ? 'Cambios guardados.' : datos.disponibilidad === 'disponible' ? '¡Publicado!' : 'Guardada como pausada.');

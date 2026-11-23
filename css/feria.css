@@ -804,3 +804,72 @@ body.app-instalada [data-instalar] { display: none !important; }
 .descarga-logo img { width: min(300px, 78vw); height: auto; filter: drop-shadow(0 10px 18px rgba(16,36,104,.18)); }
 .marca img { box-shadow: none; border-radius: 0; }
 .marca-nombre { font-weight: 800; font-stretch: 100%; letter-spacing: -.2px; }
+
+/* ======================= Rediseño 4 · etapa 2 ======================= */
+.btn-borde { background: #fff; color: var(--tinta); border: 2px solid #1A3BAE; font-weight: 700; }
+.btn-borde:hover { text-decoration: none; background: #F3F6FF; }
+.btn-google { background: #fff; color: #1F2937; border: 1px solid #DADCE0; font-weight: 700; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.btn-google .g-logo { width: 22px; height: 22px; }
+.separador { display: flex; align-items: center; gap: 12px; color: var(--sec); font-size: 13.5px; margin: 16px 0 10px; }
+.separador::before, .separador::after { content: ''; flex: 1; height: 1px; background: var(--linea); }
+
+/* Bienvenida: sin cabecera ni barra, con ola abajo */
+body.vista-limpia #top, body.vista-limpia #tabbar, body.vista-limpia #aviso-modo { display: none !important; }
+body.vista-limpia #app { padding: 0; max-width: none; }
+.bienvenida { min-height: 100dvh; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px 22px 0; position: relative; overflow: hidden; background: var(--crema); }
+.bv-logo { width: min(250px, 66vw); height: auto; margin: 8px 0 10px; filter: drop-shadow(0 10px 18px rgba(16,36,104,.18)); }
+.bienvenida h1 { margin: 6px 0 4px; font-size: 28px; color: var(--tinta); }
+.bienvenida > p { margin: 0 0 18px; max-width: 320px; }
+.bv-btns { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1; }
+.bv-ola { margin-top: auto; width: 140%; height: 190px; position: relative; left: 0; border-radius: 50% 50% 0 0 / 60% 60% 0 0; background: linear-gradient(180deg, #1A3BAE, #0E2A86); box-shadow: 0 -10px 0 #FFC633; transform: rotate(-4deg) translateY(40px); }
+.bv-pie { position: absolute; bottom: 34px; left: 0; right: 0; color: #fff; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; z-index: 2; }
+.bv-pie .ico { width: 18px; height: 18px; fill: #fff; }
+
+/* ¿Cómo querés usar? */
+.tipo-vista h1 { font-size: 26px; line-height: 1.15; margin: 6px 0 14px; color: var(--tinta); }
+.tipo-card { display: flex; align-items: center; gap: 14px; padding: 20px 16px; border-radius: 20px; background: #EEF3FF; border: 1px solid #D5E0FF; color: var(--tinta); text-decoration: none; margin: 0 0 14px; }
+.tipo-card:hover { text-decoration: none; }
+.tipo-card-am { background: #FFF6DC; border-color: #FFDE85; }
+.tipo-ico { flex: 0 0 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; background: #fff; color: #1A3BAE; box-shadow: 0 3px 10px rgba(16,36,104,.1); }
+.tipo-card-am .tipo-ico { color: #B7791F; }
+.tipo-ico .ico { width: 26px; height: 26px; }
+.tipo-txt { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.tipo-txt strong { font-size: 17px; }
+.tipo-txt span { font-size: 13.5px; color: #44507A; line-height: 1.35; }
+.tipo-card .chev { color: #1A3BAE; }
+
+/* Mi Panel */
+.panel-cab2 h1 { margin: 6px 0 2px; font-size: 28px; color: var(--tinta); }
+.panel-cab2 p { margin: 0 0 14px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 6px; border-radius: 18px; background: #fff; border: 1px solid var(--linea); box-shadow: 0 2px 10px rgba(16,36,104,.06); color: var(--tinta); text-decoration: none; }
+.stat:hover { text-decoration: none; }
+.stat strong { font-size: 24px; line-height: 1; }
+.stat > span:last-child { font-size: 12.5px; color: var(--sec); font-weight: 600; }
+.stat-ico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 2px; }
+.stat-ico .ico { width: 22px; height: 22px; }
+.st-az { background: #E6EDFF; color: #1A3BAE; } .st-am { background: #FFF0CC; color: #C27A00; } .st-ce { background: #E2F6FB; color: #0E7490; }
+.stats-sub { text-align: center; font-size: 13px; color: var(--sec); margin: 8px 0 16px; }
+.menu-panel { margin-top: 16px; }
+.mp-ico { flex: 0 0 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: #EEF3FF; color: #1A3BAE; }
+.mp-ico .ico { width: 20px; height: 20px; margin: 0; }
+
+/* Publicar en pasos */
+.pasos-pub { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); padding: 0; margin: 6px 0 14px; position: relative; }
+.pasos-pub::before { content: ''; position: absolute; top: 15px; left: 12.5%; right: 12.5%; height: 2px; background: #D8DFF2; }
+.pasos-pub li { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12.5px; color: var(--sec); position: relative; }
+.pp-num { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: #fff; border: 2px solid #D8DFF2; font-weight: 800; color: #9AA5C4; font-size: 13px; }
+.pasos-pub li.on { color: #1A3BAE; font-weight: 700; }
+.pasos-pub li.on .pp-num { background: #1A3BAE; border-color: #1A3BAE; color: #fff; box-shadow: 0 0 0 4px rgba(26,59,174,.15); }
+.pasos-pub li.hecho .pp-num { background: #E6EDFF; border-color: #1A3BAE; color: #1A3BAE; }
+.pasos-pub li.se-puede { cursor: pointer; }
+.h2-sep { margin-top: 20px; }
+.barra-form { display: flex; gap: 10px; }
+.barra-form [data-anterior] { flex: 0 0 auto; }
+.resumen-pub .rp-cab { display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }
+.resumen-pub .rp-cab img, .rp-sin { width: 88px; height: 88px; border-radius: 16px; object-fit: cover; background: #F1ECE2; display: grid; place-items: center; flex-shrink: 0; }
+.resumen-pub .rp-cab > div { display: flex; flex-direction: column; gap: 3px; }
+.rp-precio { font-size: 22px; font-weight: 900; color: var(--tinta); }
+.rp-desc { color: #44507A; font-size: 14px; }
+.paso[hidden], .btn[hidden] { display: none !important; }
+.menu-panel .mp-ico { flex: 0 0 38px !important; width: 38px; max-width: 38px; }

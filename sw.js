@@ -2,7 +2,7 @@
 // Los datos (publicaciones, tiendas) siempre se piden al servidor.
 // Al cambiar archivos de la app, subir la versión de C.
 // Vive en su propio dominio: no comparte caché con Pekerón Gestión.
-const C = 'feria-v12';
+const C = 'feria-v13';
 const F = [
   './', './index.html', './manifest.webmanifest', './css/feria.css',
   './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/logo-principal.png', './icons/icon-mask-512.png', './icons/apple-touch-icon.png',

@@ -23,6 +23,9 @@ const RUTAS = {
   tienda: () => import('./vistas/tienda.js'),
   ingresar: () => import('./vistas/cuenta.js'),
   registrarse: () => import('./vistas/cuenta.js'),
+  entrar: () => import('./vistas/cuenta.js'),
+  'registro-particular': () => import('./vistas/cuenta.js'),
+  'registro-comercio': () => import('./vistas/cuenta.js'),
   descargar: () => import('./vistas/descargar.js'),
   cuenta: () => import('./vistas/mi-cuenta.js'),
   consultados: () => import('./vistas/compras.js'),
@@ -136,7 +139,7 @@ function pintarTabbar(activa) {
     ['tiendas', 'Tiendas', 'tienda'], ['cuenta', 'Mi cuenta', 'usuario'],
   ];
   const grupo = { categoria: 'categorias', buscar: 'categorias', tienda: 'tiendas' };
-  const cuenta = ['panel', 'mis-productos', 'editar', 'mi-tienda', 'perfil', 'ingresar', 'registrarse', 'consultados', 'favoritos', 'vistos'];
+  const cuenta = ['panel', 'mis-productos', 'editar', 'mi-tienda', 'perfil', 'ingresar', 'registrarse', 'entrar', 'registro-particular', 'registro-comercio', 'consultados', 'favoritos', 'vistos'];
   const a = cuenta.includes(activa) ? 'cuenta' : grupo[activa] || activa;
   $('#tabbar').innerHTML = it.map(([h, t, i]) => {
     const on = a === h;
@@ -151,9 +154,14 @@ async function mostrar() {
   let { nombre, param } = leerRuta();
   if (PRIVADAS.includes(nombre) && !ctx.usuario) {
     ctx.volverA = location.hash.replace(/^#/, '');
-    nombre = 'ingresar'; param = '';
+    nombre = 'entrar'; param = '';
+  } else if (PRIVADAS.includes(nombre) && ctx.usuario.incompleto) {
+    // Entró con Google y todavía no completó su perfil (tipo, WhatsApp y zona).
+    ctx.volverA = location.hash.replace(/^#/, '');
+    nombre = 'registrarse'; param = '';
   }
   pintarTabbar(nombre);
+  document.body.classList.toggle('vista-limpia', nombre === 'entrar');
   const root = $('#app');
   try {
     const m = await RUTAS[nombre]();
